@@ -1,0 +1,45 @@
+{
+  "name": "maze-pathfinding-visualizer",
+  "private": false,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "An interactive web application that visualizes pathfinding and maze generation algorithms",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/maze-pathfinding-visualizer.git"
+  },
+  "homepage": "https://github.com/yourusername/maze-pathfinding-visualizer#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/maze-pathfinding-visualizer/issues"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
+  },
+  "keywords": [
+    "pathfinding",
+    "maze",
+    "visualization",
+    "dijkstra",
+    "astar",
+    "bfs",
+    "dfs",
+    "react",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT"
+}

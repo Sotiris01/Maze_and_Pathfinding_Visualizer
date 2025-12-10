@@ -1,0 +1,153 @@
+/* ===========================================
+   Global CSS Variables & Reset
+   Color Palette from project specifications
+   =========================================== */
+
+/* CSS Custom Properties */
+:root {
+  /* Node Colors */
+  --color-unvisited: #ffffff;
+  --color-wall: #34495e;
+  --color-start: #4caf50;
+  --color-finish: #f44336;
+  
+  /* Animation Colors */
+  --color-visited-start: #00bcd4;
+  --color-visited-end: #9c27b0;
+  --color-path: #ffeb3b;
+  
+  /* Multi-Agent Colors */
+  --color-agent-a: #2196f3;
+  --color-agent-b: #ff9800;
+  
+  /* UI Colors */
+  --color-primary: #667eea;
+  --color-secondary: #764ba2;
+  --color-background: #f5f7fa;
+  --color-text: #2c3e50;
+  --color-border: #b8c6db;
+  
+  /* Node Sizing */
+  --node-size: 25px;
+  
+  /* Grid Configuration */
+  --grid-rows: 30;
+  --grid-cols: 50;
+}
+
+/* CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+/* Prevent unwanted selection during drag operations */
+body.dragging {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Root element */
+#root {
+  min-height: 100vh;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Remove default button styles */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Remove default list styles */
+ul, ol {
+  list-style: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===========================================
+   Global Animation Classes for DOM Manipulation
+   Used by useVisualization hook for performance
+   (CSS Modules get hashed, these are global)
+   =========================================== */
+
+/* Visited Node Animation - Applied via JavaScript */
+.node-visited {
+  animation: visitedAnimation 1.5s ease-out forwards;
+}
+
+@keyframes visitedAnimation {
+  0% {
+    background-color: var(--color-visited-start);
+    transform: scale(0.3);
+    border-radius: 50%;
+  }
+  25% {
+    background-color: #26c6da;
+    transform: scale(0.6);
+    border-radius: 50%;
+  }
+  50% {
+    background-color: #7b1fa2;
+    transform: scale(1.2);
+    border-radius: 25%;
+  }
+  75% {
+    transform: scale(1.05);
+    border-radius: 0;
+  }
+  100% {
+    background-color: var(--color-visited-end);
+    transform: scale(1);
+    border-radius: 0;
+  }
+}
+
+/* Shortest Path Animation - Applied via JavaScript */
+.node-path {
+  animation: pathAnimation 1s ease-out forwards;
+  background-color: var(--color-path) !important;
+}
+
+@keyframes pathAnimation {
+  0% {
+    background-color: var(--color-path);
+    transform: scale(0.6);
+  }
+  50% {
+    transform: scale(1.3);
+    box-shadow: 0 0 10px var(--color-path);
+  }
+  100% {
+    background-color: var(--color-path);
+    transform: scale(1);
+    box-shadow: 0 0 5px var(--color-path);
+  }
+}

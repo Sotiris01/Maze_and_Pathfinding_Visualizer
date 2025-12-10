@@ -1,0 +1,98 @@
+/* ===========================================
+   App Component Styles
+   2-Column Layout: Board (Left) + Control Panel (Right)
+   =========================================== */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  padding: 15px 20px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+/* ===========================================
+   Main Content - 2 Column Layout
+   =========================================== */
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* Board Container - Takes remaining space */
+.boardContainer {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  overflow: auto;
+}
+
+/* ===========================================
+   Footer
+   =========================================== */
+
+.footer {
+  text-align: center;
+  padding: 10px 15px;
+  color: white;
+  opacity: 0.7;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.footer p {
+  margin: 0;
+}
+
+/* ===========================================
+   Responsive Design
+   =========================================== */
+
+@media (max-width: 900px) {
+  .mainContent {
+    flex-direction: column;
+  }
+
+  .boardContainer {
+    order: 1;
+    padding: 10px;
+  }
+
+  .header {
+    padding: 10px 15px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+}

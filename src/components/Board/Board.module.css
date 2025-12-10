@@ -1,0 +1,43 @@
+/* ===========================================
+   Board Component Styles
+   CSS Grid layout for dynamic grid dimensions
+   =========================================== */
+
+.boardContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  width: 100%;
+  overflow: auto;
+  
+  /* Prevent text selection while drawing walls */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.board {
+  /* Grid layout is set dynamically via inline styles */
+  background-color: #e8eef3;
+  border: 2px solid #34495e;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  
+  /* Prevent drag artifacts */
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* Disable pointer events on the board when visualizing */
+.board.disabled {
+  pointer-events: none;
+}
+
+/* Ensure crisp rendering */
+.board * {
+  image-rendering: crisp-edges;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
+}

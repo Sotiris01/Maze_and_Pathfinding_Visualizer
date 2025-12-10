@@ -1,0 +1,155 @@
+/* ===========================================
+   Node Component Styles
+   Color Palette from project specifications
+   =========================================== */
+
+/* CSS Custom Properties for Node Colors */
+:root {
+  --color-unvisited: #ffffff;
+  --color-wall: #34495e;
+  --color-start: #4caf50;
+  --color-finish: #f44336;
+  --color-visited-start: #00bcd4;
+  --color-visited-end: #9c27b0;
+  --color-path: #ffeb3b;
+  --node-size: 25px;
+  --node-border: #b8c6db;
+}
+
+/* Base Node Style */
+.node {
+  width: var(--node-size);
+  height: var(--node-size);
+  background-color: var(--color-unvisited);
+  border: 1px solid var(--node-border);
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.node:hover {
+  background-color: #e3f2fd;
+}
+
+/* Start Node - Green */
+.node-start {
+  background-color: var(--color-start);
+  border-color: #388e3c;
+}
+
+.node-start:hover {
+  background-color: var(--color-start);
+  cursor: grab;
+}
+
+/* Finish Node - Red */
+.node-finish {
+  background-color: var(--color-finish);
+  border-color: #c62828;
+}
+
+.node-finish:hover {
+  background-color: var(--color-finish);
+  cursor: grab;
+}
+
+/* Wall Node - Dark Grey */
+.node-wall {
+  background-color: var(--color-wall);
+  border-color: #2c3e50;
+  animation: wallAnimation 0.3s ease-out forwards;
+}
+
+@keyframes wallAnimation {
+  0% {
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Visited Node - Animation from Light Blue to Purple */
+.node-visited {
+  animation: visitedAnimation 1.5s ease-out forwards;
+}
+
+@keyframes visitedAnimation {
+  0% {
+    background-color: var(--color-visited-start);
+    transform: scale(0.3);
+    border-radius: 50%;
+  }
+  25% {
+    background-color: #26c6da;
+    transform: scale(0.6);
+    border-radius: 50%;
+  }
+  50% {
+    background-color: #7b1fa2;
+    transform: scale(1.2);
+    border-radius: 25%;
+  }
+  75% {
+    transform: scale(1.05);
+    border-radius: 0;
+  }
+  100% {
+    background-color: var(--color-visited-end);
+    transform: scale(1);
+    border-radius: 0;
+  }
+}
+
+/* Shortest Path Node - Yellow */
+.node-path {
+  background-color: var(--color-path);
+  border-color: #f9a825;
+  animation: pathAnimation 1s ease-out forwards;
+}
+
+@keyframes pathAnimation {
+  0% {
+    background-color: var(--color-path);
+    transform: scale(0.6);
+  }
+  50% {
+    transform: scale(1.3);
+    box-shadow: 0 0 10px var(--color-path);
+  }
+  100% {
+    background-color: var(--color-path);
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
+/* Disable pointer events during visualization */
+.node-disabled {
+  pointer-events: none;
+}
+
+/* ===========================================
+   Global Classes for DOM Animation
+   These are used by useVisualization hook for
+   direct DOM manipulation (performance optimization)
+   =========================================== */
+
+:global(.node-wall) {
+  background-color: var(--color-wall) !important;
+  border-color: #2c3e50 !important;
+  animation: wallAnimation 0.3s ease-out forwards;
+}
+
+:global(.node-visited) {
+  animation: visitedAnimation 1.5s ease-out forwards;
+}
+
+:global(.node-path) {
+  background-color: var(--color-path) !important;
+  border-color: #f9a825 !important;
+  animation: pathAnimation 1s ease-out forwards;
+}
