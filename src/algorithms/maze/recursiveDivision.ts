@@ -39,61 +39,20 @@ export function getRecursiveDivisionMaze(
   const numRows = grid.length;
   const numCols = grid[0].length;
 
-  // Add border walls first (optional - creates a frame)
-  addBorderWalls(grid, wallsInOrder, startNode, finishNode);
-
-  // Start recursive division on the inner area (excluding borders)
+  // Start recursive division on the full grid (no border walls)
   divide(
     grid,
-    1, // startRow (inside border)
-    numRows - 2, // endRow (inside border)
-    1, // startCol (inside border)
-    numCols - 2, // endCol (inside border)
-    chooseOrientation(numRows - 2, numCols - 2),
+    0, // startRow (full grid)
+    numRows - 1, // endRow (full grid)
+    0, // startCol (full grid)
+    numCols - 1, // endCol (full grid)
+    chooseOrientation(numRows, numCols),
     wallsInOrder,
     startNode,
     finishNode
   );
 
   return wallsInOrder;
-}
-
-/**
- * Adds border walls around the grid
- * Creates a frame for the maze
- */
-function addBorderWalls(
-  grid: Grid,
-  wallsInOrder: Node[],
-  startNode: Node,
-  finishNode: Node
-): void {
-  const numRows = grid.length;
-  const numCols = grid[0].length;
-
-  // Top and bottom borders
-  for (let col = 0; col < numCols; col++) {
-    // Top border
-    if (!isStartOrFinish(0, col, startNode, finishNode)) {
-      wallsInOrder.push(grid[0][col]);
-    }
-    // Bottom border
-    if (!isStartOrFinish(numRows - 1, col, startNode, finishNode)) {
-      wallsInOrder.push(grid[numRows - 1][col]);
-    }
-  }
-
-  // Left and right borders (excluding corners already added)
-  for (let row = 1; row < numRows - 1; row++) {
-    // Left border
-    if (!isStartOrFinish(row, 0, startNode, finishNode)) {
-      wallsInOrder.push(grid[row][0]);
-    }
-    // Right border
-    if (!isStartOrFinish(row, numCols - 1, startNode, finishNode)) {
-      wallsInOrder.push(grid[row][numCols - 1]);
-    }
-  }
 }
 
 /**

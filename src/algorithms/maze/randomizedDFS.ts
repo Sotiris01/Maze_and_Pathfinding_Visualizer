@@ -47,10 +47,9 @@ export function getRandomizedDFSMaze(
   // Track the order of carved passages (for potential future use)
   const passagesInOrder: Node[] = [];
 
-  // Start carving from position (1, 1) - inside the border
-  // We use odd coordinates for passages to ensure walls between them
-  const startRow = 1;
-  const startCol = 1;
+  // Start carving from position (0, 0) - full grid without border
+  const startRow = 0;
+  const startCol = 0;
 
   // Carve the maze using recursive DFS
   carve(grid, startRow, startCol, visited, passagesInOrder);
@@ -62,12 +61,9 @@ export function getRandomizedDFSMaze(
   // Build the walls array - all non-passage cells become walls
   const wallsInOrder: Node[] = [];
 
-  // Add border walls first (animate frame appearing)
-  addBorderWalls(grid, wallsInOrder, startNode, finishNode);
-
-  // Add interior walls (cells that weren't carved as passages)
-  for (let row = 1; row < numRows - 1; row++) {
-    for (let col = 1; col < numCols - 1; col++) {
+  // Add all walls (cells that weren't carved as passages) - no border frame
+  for (let row = 0; row < numRows; row++) {
+    for (let col = 0; col < numCols; col++) {
       if (!visited[row][col]) {
         // This cell is a wall (not carved)
         if (!isStartOrFinish(row, col, startNode, finishNode)) {
@@ -147,8 +143,8 @@ function getUnvisitedNeighbors(
     const newRow = row + dRow;
     const newCol = col + dCol;
 
-    // Check bounds (stay inside borders)
-    if (newRow > 0 && newRow < numRows - 1 && newCol > 0 && newCol < numCols - 1) {
+    // Check bounds (allow full grid edges)
+    if (newRow >= 0 && newRow < numRows && newCol >= 0 && newCol < numCols) {
       if (!visited[newRow][newCol]) {
         neighbors.push([newRow, newCol]);
       }
@@ -196,46 +192,9 @@ function ensureAccessible(
     const newRow = node.row + dRow;
     const newCol = node.col + dCol;
 
-    if (newRow > 0 && newRow < numRows - 1 && newCol > 0 && newCol < numCols - 1) {
+    // Allow clearing cells at edges (full grid bounds)
+    if (newRow >= 0 && newRow < numRows && newCol >= 0 && newCol < numCols) {
       visited[newRow][newCol] = true;
-    }
-  }
-}
-
-/**
- * Adds border walls around the grid
- * Creates a frame for the maze
- */
-function addBorderWalls(
-  grid: Grid,
-  wallsInOrder: Node[],
-  startNode: Node,
-  finishNode: Node
-): void {
-  const numRows = grid.length;
-  const numCols = grid[0].length;
-
-  // Top and bottom borders
-  for (let col = 0; col < numCols; col++) {
-    // Top border
-    if (!isStartOrFinish(0, col, startNode, finishNode)) {
-      wallsInOrder.push(grid[0][col]);
-    }
-    // Bottom border
-    if (!isStartOrFinish(numRows - 1, col, startNode, finishNode)) {
-      wallsInOrder.push(grid[numRows - 1][col]);
-    }
-  }
-
-  // Left and right borders (excluding corners already added)
-  for (let row = 1; row < numRows - 1; row++) {
-    // Left border
-    if (!isStartOrFinish(row, 0, startNode, finishNode)) {
-      wallsInOrder.push(grid[row][0]);
-    }
-    // Right border
-    if (!isStartOrFinish(row, numCols - 1, startNode, finishNode)) {
-      wallsInOrder.push(grid[row][numCols - 1]);
     }
   }
 }

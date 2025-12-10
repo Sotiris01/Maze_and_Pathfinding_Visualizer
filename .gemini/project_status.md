@@ -7,10 +7,11 @@
 | **Project Name** | Maze & Pathfinding Visualizer |
 | **Type** | Web Application (SPA) |
 | **Tech Stack** | React 18, TypeScript 5, Vite 5, CSS Modules |
-| **Current Phase** | Phase C: Maze Generation |
-| **Progress** | Phase A ✅ → Phase B ✅ → Phase C ✅ COMPLETE |
+| **Current Phase** | Phase C: Maze Generation ✅ COMPLETE |
+| **Progress** | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D (Next) |
 | **Server** | ✅ Running at http://localhost:3000/ |
 | **Default Grid** | 20 rows × 30 columns (600 nodes) |
+| **Repository** | https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer |
 
 ---
 
@@ -134,17 +135,22 @@
       - Returns nodes in START → FINISH order
     - Helper functions: `getAllNodes()`, `sortNodesByDistance()`, `updateUnvisitedNeighbors()`, `getUnvisitedNeighbors()`
     - Pure TypeScript logic - no DOM/React dependencies
-12. [x] **Visualization Animation System** - Implemented in `src/hooks/useVisualization.ts` (374 lines):
+12. [x] **Visualization Animation System** - Implemented in `src/hooks/useVisualization.ts` (396 lines):
     - **Direct DOM Manipulation** for performance (1000+ nodes)
       - Uses `document.getElementById(`node-${row}-${col}`)` to access nodes
       - CSS class toggling: `.node-visited`, `.node-path` (global classes in variables.css)
     - **Hook API:**
       - `visualizeDijkstra(grid, setGrid, setIsVisualizing, speed)` - Main visualization function
+      - `generateMaze(mazeType, grid, setGrid, setIsVisualizing, speed)` - Maze generation
       - `clearVisualization(grid, setGrid)` - Clears animation classes and resets state
       - `isAnimating` ref - Tracks animation state
+    - **Visualization Algorithm Flow (CRITICAL - Deep Grid Copy):**
+      - **Phase 1 (Calculation):** Run algorithm on DEEP COPY of grid (prevents React state mutation)
+      - **Phase 2 (Animation):** Progressive DOM manipulation with setTimeout
+      - **Phase 3 (Cleanup):** Reset animation flags (DOM is source of truth)
     - **Animation Flow:**
-      - Step A: Find Start/Finish nodes from grid
-      - Step B: Run Dijkstra (synchronous, pure logic)
+      - Step A: Find Start/Finish nodes from algorithm grid copy
+      - Step B: Run Dijkstra (synchronous, pure logic) on copy
       - Step C: Animate visited nodes with setTimeout (index * speed delay)
       - Step D: Animate shortest path (3x slower) after visited completes
     - **Performance Optimizations:**
@@ -186,22 +192,20 @@
     - **App.tsx Refactored** (92 lines):
       - MainContent component handles visualization logic
       - Clean separation: App renders layout, MainContent handles hooks
-15. [x] **Recursive Division Maze Algorithm** - Created `src/algorithms/maze/recursiveDivision.ts` (246 lines):
+15. [x] **Recursive Division Maze Algorithm** - Created `src/algorithms/maze/recursiveDivision.ts` (209 lines):
     - `getRecursiveDivisionMaze(grid, startNode, finishNode)` - Main function
     - **Algorithm Logic:**
-      - Adds border walls around the grid first
-      - Recursively divides chambers with walls
+      - Recursively divides chambers with walls (no border frame)
       - Orientation: height > width = horizontal, width > height = vertical
       - Each wall has exactly one random gap for solvability
       - Base case: chamber < 3 rows or cols
       - Protects Start/Finish nodes from being overwritten
     - **Helper Functions:**
-      - `addBorderWalls()` - Creates frame
       - `divide()` - Recursive division
       - `chooseOrientation()` - Based on chamber aspect ratio
       - `getEvenNumbers()`, `getOddNumbers()` - Wall/gap positioning
       - `isStartOrFinish()` - Protection check
-16. [x] **Maze Generation in useVisualization** - Updated hook (374 lines):
+16. [x] **Maze Generation in useVisualization** - Updated hook (396 lines):
     - Added `generateMaze(mazeType, grid, setGrid, setIsVisualizing, speed)`
     - **Animation System:**
       - `clearWallClasses()` - Removes `.node-wall` from DOM
@@ -242,19 +246,19 @@
     - Added `:global(.node-visited)` for visited node animation
     - Added `:global(.node-path)` with `!important` for path animation
     - Fixes CSS Modules scoping issue with direct DOM manipulation
-21. [x] **Randomized DFS Maze Algorithm** - Created `src/algorithms/maze/randomizedDFS.ts` (223 lines):
+21. [x] **Randomized DFS Maze Algorithm** - Created `src/algorithms/maze/randomizedDFS.ts` (186 lines):
     - `getRandomizedDFSMaze(grid, startNode, finishNode)` - Main function
     - **Algorithm Logic (Recursive Backtracker):**
       - Conceptually starts with grid full of walls
       - Carves passages using DFS with random neighbor selection
       - Moves 2 cells at a time to leave room for walls between passages
       - Creates "perfect maze" (exactly one path between any two points)
+      - No border frame - extends to grid edges naturally
     - **Helper Functions:**
       - `carve()` - Recursive DFS carving
-      - `getUnvisitedNeighbors()` - Gets neighbors 2 cells away
+      - `getUnvisitedNeighbors()` - Gets neighbors 2 cells away (full grid bounds)
       - `shuffleArray()` - Fisher-Yates shuffle for randomness
       - `ensureAccessible()` - Clears area around Start/Finish nodes
-      - `addBorderWalls()` - Creates frame around maze
     - **Output:** Returns walls (uncarved cells) for animation
     - **Animation Optimization:** Uses faster speed (5ms min) due to high wall count
 22. [x] **useVisualization Hook Update** - Added Randomized DFS support:
@@ -277,6 +281,20 @@
     - **Phase 3 (Cleanup):** Reset animation flags only
       - Do NOT sync React state after animation (DOM is source of truth)
     - **Result:** Smooth progressive animation instead of instant purple grid
+25. [x] **Remove Outer Border/Perimeter Walls from Maze Algorithms** - Modified both maze generators:
+    - **Recursive Division (`recursiveDivision.ts`):**
+      - Removed `addBorderWalls()` call from `getRecursiveDivisionMaze()`
+      - Updated `divide()` call to use full grid bounds (0 to `numRows-1`, 0 to `numCols-1`)
+      - Removed unused `addBorderWalls()` function entirely
+      - Maze now extends naturally to edges without forced frame
+    - **Randomized DFS (`randomizedDFS.ts`):**
+      - Removed `addBorderWalls()` call from `getRandomizedDFSMaze()`
+      - Updated starting position from (1,1) to (0,0) for full grid coverage
+      - Updated `getUnvisitedNeighbors()` bounds: `>= 0` and `< numRows/numCols`
+      - Updated `ensureAccessible()` bounds to allow edge cell clearing
+      - Updated wall collection loop to iterate over full grid (0 to `numRows`, 0 to `numCols`)
+      - Removed unused `addBorderWalls()` function entirely
+    - **Result:** Mazes rely on implicit boundaries without visual frame
 
 ---
 
@@ -387,15 +405,16 @@ maze-pathfinding-visualizer/
 
 | Category | Files | Implemented | Empty | Lines of Code |
 |----------|-------|-------------|-------|---------------|
-| Components | 9 | 5 | 4 | ~848 |
+| Components | 12 | 5 | 7 | ~1,033 |
 | Context | 1 | 1 | 0 | 163 |
 | Types | 1 | 1 | 0 | 64 |
 | Utils | 2 | 1 | 1 | 291 |
-| Algorithms | 6 | 3 | 3 | ~614 |
-| Hooks | 2 | 1 | 1 | ~380 |
-| App | 2 | 2 | 0 | ~174 |
+| Algorithms | 6 | 3 | 3 | ~540 |
+| Hooks | 2 | 1 | 1 | 396 |
+| App | 2 | 2 | 0 | 174 |
 | Styles | 1 | 1 | 0 | 138 |
-| **Total** | **24** | **15** | **9** | **~2,672** |
+| Config | 3 | 3 | 0 | ~55 |
+| **Total** | **30** | **18** | **12** | **~2,854** |
 
 ---
 
