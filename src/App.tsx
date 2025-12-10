@@ -16,14 +16,23 @@ const MainContent: React.FC = () => {
     setGrid,
     setIsVisualizing,
     animationSpeed,
+    selectedAlgorithm,
+    secondAlgorithm,
     clearAllWalls
   } = useGridContext();
   
-  const { visualizeDijkstra, generateMaze, clearVisualization } = useVisualization();
+  const { visualizePathfinding, visualizeRace, generateMaze, clearVisualization } = useVisualization();
 
-  // Handler for visualize button
+  // Handler for visualize button (single algorithm)
   const handleVisualize = (): void => {
-    visualizeDijkstra(grid, setGrid, setIsVisualizing, animationSpeed);
+    visualizePathfinding(selectedAlgorithm, grid, setGrid, setIsVisualizing, animationSpeed);
+  };
+
+  // Handler for race mode visualization (two algorithms)
+  const handleVisualizeRace = (): void => {
+    if (secondAlgorithm) {
+      visualizeRace(selectedAlgorithm, secondAlgorithm, grid, setGrid, setIsVisualizing, animationSpeed);
+    }
   };
 
   // Handler for clear path button
@@ -62,6 +71,7 @@ const MainContent: React.FC = () => {
         onVisualize={handleVisualize}
         onClearPath={handleClearPath}
         onGenerateMaze={handleGenerateMaze}
+        onVisualizeRace={handleVisualizeRace}
       />
     </div>
   );
@@ -91,7 +101,7 @@ const App: React.FC = () => {
         {/* Footer */}
         <footer className={styles.footer}>
           <p>
-            Built with React + TypeScript • Phase C: Maze Generation
+            Built with React + TypeScript • Phase D: Advanced Features
           </p>
         </footer>
       </div>

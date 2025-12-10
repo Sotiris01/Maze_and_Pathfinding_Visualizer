@@ -18,17 +18,18 @@ interface ControlPanelProps {
   onVisualize: () => void;
   onClearPath: () => void;
   onGenerateMaze: (mazeType: MazeType) => void;
+  onVisualizeRace: () => void;
 }
 
 /**
  * Algorithm options for the dropdown
- * Only Dijkstra is implemented (Phase B), others coming in Phase D
+ * All pathfinding algorithms implemented (Phase D complete)
  */
 const ALGORITHM_OPTIONS: { value: AlgorithmType; label: string; disabled: boolean }[] = [
   { value: AlgorithmType.DIJKSTRA, label: "Dijkstra's Algorithm", disabled: false },
-  { value: AlgorithmType.ASTAR, label: 'A* Search (Coming Soon)', disabled: true },
-  { value: AlgorithmType.BFS, label: 'Breadth-First Search (Coming Soon)', disabled: true },
-  { value: AlgorithmType.DFS, label: 'Depth-First Search (Coming Soon)', disabled: true },
+  { value: AlgorithmType.ASTAR, label: 'A* Search', disabled: false },
+  { value: AlgorithmType.BFS, label: 'Breadth-First Search', disabled: false },
+  { value: AlgorithmType.DFS, label: 'Depth-First Search', disabled: false },
 ];
 
 /**
@@ -43,13 +44,17 @@ const MAZE_OPTIONS: { value: MazeType | 'none'; label: string; disabled: boolean
 /**
  * ControlPanel - Sidebar component for controlling the visualization
  */
-const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, onGenerateMaze }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, onGenerateMaze, onVisualizeRace }) => {
   const {
     selectedAlgorithm,
     setSelectedAlgorithm,
     selectedMaze,
     setSelectedMaze,
     isVisualizing,
+    isRaceMode,
+    setIsRaceMode,
+    secondAlgorithm,
+    setSecondAlgorithm,
     rowCount,
     colCount,
     resizeGrid,
@@ -62,6 +67,35 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, o
   // Handler for algorithm selection
   const handleAlgorithmChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     setSelectedAlgorithm(e.target.value as AlgorithmType);
+  };
+
+  // Handler for second algorithm selection (Race Mode)
+  const handleSecondAlgorithmChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+    setSecondAlgorithm(e.target.value as AlgorithmType);
+  };
+
+  // Handler for race mode toggle
+  const handleRaceModeToggle = (): void => {
+    if (isVisualizing) return;
+    const newRaceMode = !isRaceMode;
+    setIsRaceMode(newRaceMode);
+    // Set default second algorithm if enabling race mode
+    if (newRaceMode && !secondAlgorithm) {
+      // Pick a different algorithm than the first one
+      const defaultSecond = selectedAlgorithm === AlgorithmType.DIJKSTRA 
+        ? AlgorithmType.ASTAR 
+        : AlgorithmType.DIJKSTRA;
+      setSecondAlgorithm(defaultSecond);
+    }
+  };
+
+  // Handler for visualize button (supports both single and race mode)
+  const handleVisualize = (): void => {
+    if (isRaceMode && secondAlgorithm) {
+      onVisualizeRace();
+    } else {
+      onVisualize();
+    }
   };
 
   // Handler for maze selection
@@ -124,6 +158,42 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, o
             </option>
           ))}
         </select>
+
+        {/* Race Mode Toggle */}
+        <div className={styles.toggleContainer}>
+          <span className={styles.toggleLabel}>🏁 Race Mode</span>
+          <div
+            className={`${styles.toggle} ${isRaceMode ? styles.toggleActive : ''} ${isVisualizing ? styles.toggleDisabled : ''}`}
+            onClick={handleRaceModeToggle}
+            role="switch"
+            aria-checked={isRaceMode}
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleRaceModeToggle()}
+          />
+        </div>
+
+        {/* Second Algorithm (shown when Race Mode is active) */}
+        {isRaceMode && (
+          <div className={styles.secondAlgorithmSection}>
+            <div className={styles.secondAlgorithmLabel}>Agent 2</div>
+            <select
+              value={secondAlgorithm || ''}
+              onChange={handleSecondAlgorithmChange}
+              disabled={isVisualizing}
+              className={styles.selectSecond}
+            >
+              {ALGORITHM_OPTIONS.map((option) => (
+                <option 
+                  key={option.value} 
+                  value={option.value} 
+                  disabled={option.disabled || option.value === selectedAlgorithm}
+                >
+                  {option.label}{option.value === selectedAlgorithm ? ' (Agent 1)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </section>
 
       {/* Maze Generation Section */}
@@ -154,11 +224,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, o
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Actions</h3>
         <button
-          onClick={onVisualize}
-          disabled={isVisualizing}
-          className={`${styles.button} ${styles.buttonVisualize}`}
+          onClick={handleVisualize}
+          disabled={isVisualizing || (isRaceMode && !secondAlgorithm)}
+          className={`${styles.button} ${isRaceMode ? styles.buttonRace : styles.buttonVisualize}`}
         >
-          {isVisualizing ? 'Visualizing...' : 'Visualize!'}
+          {isVisualizing ? 'Visualizing...' : isRaceMode ? '🏁 Race!' : 'Visualize!'}
         </button>
         <button
           onClick={onClearPath}

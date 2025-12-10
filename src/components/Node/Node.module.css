@@ -153,3 +153,119 @@
   border-color: #f9a825 !important;
   animation: pathAnimation 1s ease-out forwards;
 }
+
+/* ===========================================
+   Agent 2 Global Classes (Race Mode)
+   Orange -> Red (Visited), Cyan (Path)
+   =========================================== */
+
+:global(.node-visited-second) {
+  animation: visitedAnimationSecond 1.5s ease-out forwards;
+}
+
+@keyframes visitedAnimationSecond {
+  0% {
+    background-color: #ff9800;
+    transform: scale(0.3);
+    border-radius: 50%;
+  }
+  25% {
+    background-color: #ffb74d;
+    transform: scale(0.6);
+    border-radius: 50%;
+  }
+  50% {
+    background-color: #e53935;
+    transform: scale(1.2);
+    border-radius: 25%;
+  }
+  75% {
+    transform: scale(1.05);
+    border-radius: 0;
+  }
+  100% {
+    background-color: #f44336;
+    transform: scale(1);
+    border-radius: 0;
+  }
+}
+
+:global(.node-path-second) {
+  background-color: #00e5ff !important;
+  border-color: #00b8d4 !important;
+  animation: pathAnimationSecond 1s ease-out forwards;
+}
+
+@keyframes pathAnimationSecond {
+  0% {
+    background-color: #00e5ff;
+    transform: scale(0.6);
+  }
+  50% {
+    transform: scale(1.3);
+    box-shadow: 0 0 10px #00e5ff;
+  }
+  100% {
+    background-color: #00e5ff;
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
+:global(.node-visited-overlap) {
+  animation: visitedAnimationOverlap 1.5s ease-out forwards, pulseOverlap 2s ease-in-out infinite 1.5s;
+}
+
+@keyframes visitedAnimationOverlap {
+  0% {
+    background: linear-gradient(135deg, #9c27b0 0%, #f44336 100%);
+    transform: scale(0.3);
+    border-radius: 50%;
+  }
+  50% {
+    background: linear-gradient(135deg, #7b1fa2 0%, #e53935 100%);
+    transform: scale(1.2);
+    border-radius: 25%;
+  }
+  100% {
+    background: linear-gradient(135deg, #9c27b0 0%, #f44336 100%);
+    transform: scale(1);
+    border-radius: 0;
+  }
+}
+
+@keyframes pulseOverlap {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 8px 2px rgba(244, 67, 54, 0.6);
+  }
+}
+
+/* ===========================================
+   Simple Path Overlap (Lime Green)
+   Used when both agents share the same path node
+   =========================================== */
+
+:global(.node-path-overlap) {
+  background-color: #76ff03 !important;
+  border-color: #64dd17 !important;
+  animation: pathAnimationOverlap 1s ease-out forwards;
+}
+
+@keyframes pathAnimationOverlap {
+  0% {
+    background-color: #76ff03;
+    transform: scale(0.6);
+  }
+  50% {
+    transform: scale(1.3);
+    box-shadow: 0 0 12px rgba(118, 255, 3, 0.6);
+  }
+  100% {
+    background-color: #76ff03;
+    transform: scale(1);
+    box-shadow: 0 0 6px rgba(118, 255, 3, 0.4);
+  }
+}

@@ -33,6 +33,12 @@ interface GridContextType {
   selectedAlgorithm: AlgorithmType;
   setSelectedAlgorithm: React.Dispatch<React.SetStateAction<AlgorithmType>>;
 
+  // Race Mode State
+  isRaceMode: boolean;
+  setIsRaceMode: React.Dispatch<React.SetStateAction<boolean>>;
+  secondAlgorithm: AlgorithmType | null;
+  setSecondAlgorithm: React.Dispatch<React.SetStateAction<AlgorithmType | null>>;
+
   // Maze Selection
   selectedMaze: MazeType | null;
   setSelectedMaze: React.Dispatch<React.SetStateAction<MazeType | null>>;
@@ -62,6 +68,10 @@ const defaultContextValue: GridContextType = {
   setIsVisualizing: () => {},
   selectedAlgorithm: AlgorithmType.DIJKSTRA,
   setSelectedAlgorithm: () => {},
+  isRaceMode: false,
+  setIsRaceMode: () => {},
+  secondAlgorithm: null,
+  setSecondAlgorithm: () => {},
   selectedMaze: null,
   setSelectedMaze: () => {},
   animationSpeed: 10,
@@ -119,6 +129,10 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
   // Maze Selection
   const [selectedMaze, setSelectedMaze] = useState<MazeType | null>(null);
 
+  // Race Mode State
+  const [isRaceMode, setIsRaceMode] = useState<boolean>(false);
+  const [secondAlgorithm, setSecondAlgorithm] = useState<AlgorithmType | null>(null);
+
   // Animation Speed (delay between node animations in ms)
   const [animationSpeed, setAnimationSpeed] = useState<number>(10);
 
@@ -174,6 +188,10 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
     setIsVisualizing,
     selectedAlgorithm,
     setSelectedAlgorithm,
+    isRaceMode,
+    setIsRaceMode,
+    secondAlgorithm,
+    setSecondAlgorithm,
     selectedMaze,
     setSelectedMaze,
     animationSpeed,
