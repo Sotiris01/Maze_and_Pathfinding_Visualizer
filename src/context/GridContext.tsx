@@ -4,10 +4,14 @@ import React, {
   useState,
   useCallback,
   ReactNode,
-} from 'react';
-import { Grid, AlgorithmType, MazeType, GRID_ROWS, GRID_COLS } from '../types';
-import { getInitialGrid, resetGridForPathfinding, clearWalls } from '../utils/gridUtils';
-import { AlgorithmStats, RaceStats } from '../components/Modals/StatsModal';
+} from "react";
+import { Grid, AlgorithmType, MazeType, GRID_ROWS, GRID_COLS } from "../types";
+import {
+  getInitialGrid,
+  resetGridForPathfinding,
+  clearWalls,
+} from "../utils/gridUtils";
+import { AlgorithmStats, RaceStats } from "../components/Modals/StatsModal";
 
 /**
  * Grid Context Type Definition
@@ -38,7 +42,9 @@ interface GridContextType {
   isRaceMode: boolean;
   setIsRaceMode: React.Dispatch<React.SetStateAction<boolean>>;
   secondAlgorithm: AlgorithmType | null;
-  setSecondAlgorithm: React.Dispatch<React.SetStateAction<AlgorithmType | null>>;
+  setSecondAlgorithm: React.Dispatch<
+    React.SetStateAction<AlgorithmType | null>
+  >;
 
   // Maze Selection
   selectedMaze: MazeType | null;
@@ -50,7 +56,14 @@ interface GridContextType {
 
   // Visualization Stats (for Statistics Section)
   visualizationStats: AlgorithmStats | RaceStats | null;
-  setVisualizationStats: React.Dispatch<React.SetStateAction<AlgorithmStats | RaceStats | null>>;
+  setVisualizationStats: React.Dispatch<
+    React.SetStateAction<AlgorithmStats | RaceStats | null>
+  >;
+
+  // Toast Notification State
+  toastMsg: string | null;
+  showToast: (msg: string) => void;
+  clearToast: () => void;
 
   // Helper Functions
   resetBoard: () => void;
@@ -83,6 +96,9 @@ const defaultContextValue: GridContextType = {
   setAnimationSpeed: () => {},
   visualizationStats: null,
   setVisualizationStats: () => {},
+  toastMsg: null,
+  showToast: () => {},
+  clearToast: () => {},
   resetBoard: () => {},
   clearPath: () => {},
   clearAllWalls: () => {},
@@ -99,10 +115,13 @@ const GridContext = createContext<GridContextType>(defaultContextValue);
 export const useGridContext = (): GridContextType => {
   const context = useContext(GridContext);
   if (!context) {
-    throw new Error('useGridContext must be used within a GridProvider');
+    throw new Error("useGridContext must be used within a GridProvider");
   }
   return context;
 };
+
+// Alias for shorter import in components
+export const useGrid = useGridContext;
 
 /**
  * Provider Props
@@ -120,7 +139,9 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
   const [colCount, setColCount] = useState<number>(GRID_COLS);
 
   // Core Grid State
-  const [grid, setGrid] = useState<Grid>(() => getInitialGrid(GRID_ROWS, GRID_COLS));
+  const [grid, setGrid] = useState<Grid>(() =>
+    getInitialGrid(GRID_ROWS, GRID_COLS)
+  );
 
   // Mouse State for wall drawing
   const [isMousePressed, setIsMousePressed] = useState<boolean>(false);
@@ -138,13 +159,34 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
 
   // Race Mode State
   const [isRaceMode, setIsRaceMode] = useState<boolean>(false);
-  const [secondAlgorithm, setSecondAlgorithm] = useState<AlgorithmType | null>(null);
+  const [secondAlgorithm, setSecondAlgorithm] = useState<AlgorithmType | null>(
+    null
+  );
 
   // Animation Speed (delay between node animations in ms)
   const [animationSpeed, setAnimationSpeed] = useState<number>(10);
 
   // Visualization Stats (displayed in Statistics Section)
-  const [visualizationStats, setVisualizationStats] = useState<AlgorithmStats | RaceStats | null>(null);
+  const [visualizationStats, setVisualizationStats] = useState<
+    AlgorithmStats | RaceStats | null
+  >(null);
+
+  // Toast Notification State
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  /**
+   * Shows a toast notification message
+   */
+  const showToast = useCallback((msg: string): void => {
+    setToastMsg(msg);
+  }, []);
+
+  /**
+   * Clears the current toast notification
+   */
+  const clearToast = useCallback((): void => {
+    setToastMsg(null);
+  }, []);
 
   /**
    * Resets the entire board to initial state with current dimensions
@@ -158,17 +200,20 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
    * Resizes the grid to new dimensions
    * Generates a completely new grid (walls are cleared)
    */
-  const resizeGrid = useCallback((newRows: number, newCols: number): void => {
-    if (isVisualizing) return; // Don't resize while visualizing
-    
-    // Clamp values to reasonable bounds
-    const clampedRows = Math.max(5, Math.min(50, newRows));
-    const clampedCols = Math.max(5, Math.min(80, newCols));
-    
-    setRowCount(clampedRows);
-    setColCount(clampedCols);
-    setGrid(getInitialGrid(clampedRows, clampedCols));
-  }, [isVisualizing]);
+  const resizeGrid = useCallback(
+    (newRows: number, newCols: number): void => {
+      if (isVisualizing) return; // Don't resize while visualizing
+
+      // Clamp values to reasonable bounds
+      const clampedRows = Math.max(5, Math.min(50, newRows));
+      const clampedCols = Math.max(5, Math.min(80, newCols));
+
+      setRowCount(clampedRows);
+      setColCount(clampedCols);
+      setGrid(getInitialGrid(clampedRows, clampedCols));
+    },
+    [isVisualizing]
+  );
 
   /**
    * Clears only the path/visited nodes, keeps walls
@@ -208,6 +253,9 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
     setAnimationSpeed,
     visualizationStats,
     setVisualizationStats,
+    toastMsg,
+    showToast,
+    clearToast,
     resetBoard,
     clearPath,
     clearAllWalls,

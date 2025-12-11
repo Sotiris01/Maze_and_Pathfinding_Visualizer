@@ -22,26 +22,31 @@ An interactive web application that visualizes pathfinding and maze generation a
 ## ✨ Features
 
 ### 🤖 Pathfinding Algorithms
-| Algorithm | Description | Guarantees Shortest Path |
-|-----------|-------------|:------------------------:|
-| **Dijkstra's** | Classic algorithm exploring nodes by distance | ✅ Yes |
-| **A\* Search** | Informed search using Manhattan distance heuristic | ✅ Yes |
-| **BFS** | Breadth-First Search - layer by layer exploration | ✅ Yes (unweighted) |
-| **DFS** | Depth-First Search - explores deep before wide | ❌ No |
+
+| Algorithm      | Description                                        | Guarantees Shortest Path |
+| -------------- | -------------------------------------------------- | :----------------------: |
+| **Dijkstra's** | Classic algorithm exploring nodes by distance      |          ✅ Yes          |
+| **A\* Search** | Informed search using Manhattan distance heuristic |          ✅ Yes          |
+| **BFS**        | Breadth-First Search - layer by layer exploration  |   ✅ Yes (unweighted)    |
+| **DFS**        | Depth-First Search - explores deep before wide     |          ❌ No           |
 
 ### 🧩 Maze Generation
-| Algorithm | Style | Description |
-|-----------|-------|-------------|
-| **Recursive Division** | Structured | Creates chambers with connecting passages |
-| **Randomized DFS** | Organic | Recursive Backtracker - winding, cave-like paths |
+
+| Algorithm              | Style      | Description                                      |
+| ---------------------- | ---------- | ------------------------------------------------ |
+| **Recursive Division** | Structured | Creates chambers with connecting passages        |
+| **Randomized DFS**     | Organic    | Recursive Backtracker - winding, cave-like paths |
 
 ### 🏁 Race Mode
+
 Compare two algorithms side-by-side! Watch them compete to find the path first with distinct color schemes:
+
 - **Agent 1:** Blue→Purple visited nodes, Yellow path
 - **Agent 2:** Orange→Red visited nodes, Cyan path
 - **Overlap:** Lime green for shared path segments
 
 ### 🎮 Interactive Controls
+
 - 🖱️ **Draw walls** - Click and drag to create obstacles
 - 🧹 **Erase walls** - `Ctrl/Cmd` + click to remove walls
 - 🟢 **Drag Start node** - Reposition the starting point
@@ -50,13 +55,23 @@ Compare two algorithms side-by-side! Watch them compete to find the path first w
 - ⚡ **Speed control** - Adjust animation speed (1-50ms)
 
 ### 📊 Statistics Dashboard
+
 After each visualization, view detailed metrics:
+
 - Execution time (milliseconds)
 - Nodes visited count
 - Final path length
 - Side-by-side comparison in Race Mode
+- **Unreachable target detection** - Shows "Unreachable" when no path exists
+
+### ⚠️ Edge Case Handling
+
+- **Toast Notifications** - Slide-up alerts for path failures
+- **Graceful Degradation** - Statistics display "Unreachable" with red indicator
+- **Race Mode Support** - Handles cases where one or both algorithms fail
 
 ### 🎨 Modern UI
+
 - **Accordion-based Control Panel** - Organized, collapsible sections
 - **Two-Page Scroll Layout** - CSS Scroll Snap for smooth navigation
 - **Auto-scaling Grid** - Dynamic node sizing with ResizeObserver
@@ -72,20 +87,20 @@ After each visualization, view detailed metrics:
 
 ## 📸 Screenshots
 
-*Screenshots coming soon*
+_Screenshots coming soon_
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Technology | Purpose |
-|------------|---------|
-| **React 18** | Component-based UI with hooks |
-| **TypeScript 5** | Type safety and better DX |
-| **Vite 5** | Lightning-fast HMR and builds |
-| **CSS Modules** | Scoped styling with CSS Grid |
-| **React Context** | Global state management |
-| **Direct DOM** | High-performance animations (1000+ nodes) |
+| Technology        | Purpose                                   |
+| ----------------- | ----------------------------------------- |
+| **React 18**      | Component-based UI with hooks             |
+| **TypeScript 5**  | Type safety and better DX                 |
+| **Vite 5**        | Lightning-fast HMR and builds             |
+| **CSS Modules**   | Scoped styling with CSS Grid              |
+| **React Context** | Global state management                   |
+| **Direct DOM**    | High-performance animations (1000+ nodes) |
 
 ---
 
@@ -161,6 +176,7 @@ src/
 ## 🧮 Algorithms
 
 ### Dijkstra's Algorithm
+
 The classic shortest-path algorithm. Explores nodes in order of increasing distance from the start, guaranteeing the optimal path.
 
 ```
@@ -168,7 +184,8 @@ Time Complexity: O((V + E) log V) with priority queue
 Space Complexity: O(V)
 ```
 
-### A* Search
+### A\* Search
+
 An informed search algorithm combining Dijkstra with a heuristic (Manhattan distance) to prioritize nodes closer to the goal.
 
 ```
@@ -177,6 +194,7 @@ Space Complexity: O(V)
 ```
 
 ### Breadth-First Search (BFS)
+
 Explores all nodes at the current depth before moving deeper. Guarantees shortest path in unweighted graphs.
 
 ```
@@ -185,6 +203,7 @@ Space Complexity: O(V)
 ```
 
 ### Depth-First Search (DFS)
+
 Explores as far as possible along each branch before backtracking. Fast but does **not** guarantee shortest path.
 
 ```
@@ -197,27 +216,27 @@ Space Complexity: O(V)
 ## 🎮 How to Use
 
 1. **Select an Algorithm** - Choose from the Pathfinding dropdown
-2. **Generate a Maze** *(optional)* - Select a maze type and click "Generate Maze"
-3. **Draw Custom Walls** *(optional)* - Click and drag on the grid
+2. **Generate a Maze** _(optional)_ - Select a maze type and click "Generate Maze"
+3. **Draw Custom Walls** _(optional)_ - Click and drag on the grid
 4. **Visualize!** - Click the primary button to watch the algorithm
-5. **Enable Race Mode** *(optional)* - Toggle to compare two algorithms
+5. **Enable Race Mode** _(optional)_ - Toggle to compare two algorithms
 6. **View Statistics** - Scroll down to see the results dashboard
 
 ---
 
 ## 🎨 Color Legend
 
-| Element | Color | Description |
-|---------|-------|-------------|
-| ⬜ Unvisited | White | Unexplored nodes |
-| 🟢 Start | Green | Starting position |
-| 🔴 Finish | Red | Destination |
-| ⬛ Wall | Dark Grey | Obstacles |
-| 🔵→🟣 Visited (Agent 1) | Blue→Purple | Explored by first algorithm |
-| 🟠→🔴 Visited (Agent 2) | Orange→Red | Explored by second algorithm |
-| 🟡 Path (Agent 1) | Yellow | Final path of first algorithm |
-| 🩵 Path (Agent 2) | Cyan | Final path of second algorithm |
-| 💚 Overlap | Lime Green | Shared path nodes in Race Mode |
+| Element                 | Color       | Description                    |
+| ----------------------- | ----------- | ------------------------------ |
+| ⬜ Unvisited            | White       | Unexplored nodes               |
+| 🟢 Start                | Green       | Starting position              |
+| 🔴 Finish               | Red         | Destination                    |
+| ⬛ Wall                 | Dark Grey   | Obstacles                      |
+| 🔵→🟣 Visited (Agent 1) | Blue→Purple | Explored by first algorithm    |
+| 🟠→🔴 Visited (Agent 2) | Orange→Red  | Explored by second algorithm   |
+| 🟡 Path (Agent 1)       | Yellow      | Final path of first algorithm  |
+| 🩵 Path (Agent 2)        | Cyan        | Final path of second algorithm |
+| 💚 Overlap              | Lime Green  | Shared path nodes in Race Mode |
 
 ---
 
@@ -237,7 +256,7 @@ Space Complexity: O(V)
 - [x] **Phase A:** Grid setup with wall drawing & drag-drop
 - [x] **Phase B:** Dijkstra's algorithm with animation system
 - [x] **Phase C:** Maze generation (Recursive Division, Randomized DFS)
-- [x] **Phase D:** A*, BFS, DFS algorithms + Race Mode
+- [x] **Phase D:** A\*, BFS, DFS algorithms + Race Mode
 - [x] **Phase E:** Statistics dashboard, Legend, Accordion UI
 - [ ] **Phase F:** Responsive design, PWA support, deployment
 

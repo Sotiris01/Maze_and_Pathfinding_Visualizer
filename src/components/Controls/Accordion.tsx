@@ -56,7 +56,7 @@ const Accordion: React.FC<AccordionProps> = ({
         className={styles.header}
         onClick={handleToggle}
         onKeyDown={handleKeyDown}
-        aria-expanded={isOpen}
+        aria-expanded={isOpen ? "true" : "false"}
         type="button"
       >
         <span className={styles.titleWrapper}>

@@ -157,6 +157,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               onChange={handleAlgorithmChange}
               disabled={isVisualizing}
               className={styles.select}
+              title="Select pathfinding algorithm"
             >
               {ALGORITHM_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -174,7 +175,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               className={`${styles.toggle} ${isRaceMode ? styles.toggleActive : ''}`}
               onClick={handleRaceModeToggle}
               disabled={isVisualizing}
-              aria-pressed={isRaceMode}
+              aria-pressed={isRaceMode ? "true" : "false"}
+              title="Toggle race mode to compare two algorithms"
             >
               <span className={styles.toggleKnob} />
             </button>
@@ -189,6 +191,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 onChange={handleSecondAlgorithmChange}
                 disabled={isVisualizing}
                 className={`${styles.select} ${styles.selectSecondary}`}
+                title="Select second algorithm for race mode"
               >
                 {ALGORITHM_OPTIONS.map((option) => (
                   <option
@@ -232,6 +235,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               onChange={handleMazeChange}
               disabled={isVisualizing}
               className={styles.select}
+              title="Select maze generation algorithm"
             >
               {MAZE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -274,6 +278,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               onChange={handleSpeedChange}
               disabled={isVisualizing}
               className={styles.slider}
+              title="Adjust animation speed"
             />
             <div className={styles.sliderLabels}>
               <span>Fast</span>
@@ -295,6 +300,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               onChange={handleRowChange}
               disabled={isVisualizing}
               className={styles.slider}
+              title="Adjust number of rows"
             />
           </div>
 
@@ -312,6 +318,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               onChange={handleColChange}
               disabled={isVisualizing}
               className={styles.slider}
+              title="Adjust number of columns"
             />
           </div>
 

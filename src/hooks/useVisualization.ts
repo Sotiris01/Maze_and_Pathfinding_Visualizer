@@ -6,23 +6,38 @@
  * Does NOT use React setState inside animation loops.
  */
 
-import { useCallback, useRef } from 'react';
-import { Grid, Node, MazeType, AlgorithmType } from '../types';
-import { dijkstra, getNodesInShortestPathOrder } from '../algorithms/pathfinding/dijkstra';
-import { astar, getNodesInShortestPathOrder as getAstarPath } from '../algorithms/pathfinding/astar';
-import { bfs, getNodesInShortestPathOrder as getBfsPath } from '../algorithms/pathfinding/bfs';
-import { dfs, getNodesInShortestPathOrder as getDfsPath } from '../algorithms/pathfinding/dfs';
-import { getRecursiveDivisionMaze } from '../algorithms/maze/recursiveDivision';
-import { getRandomizedDFSMaze } from '../algorithms/maze/randomizedDFS';
-import { resetGridForPathfinding, clearWalls } from '../utils/gridUtils';
-import { AlgorithmStats, RaceStats } from '../components/Modals/StatsModal';
+import { useCallback, useRef } from "react";
+import { Grid, Node, MazeType, AlgorithmType } from "../types";
+import {
+  dijkstra,
+  getNodesInShortestPathOrder,
+} from "../algorithms/pathfinding/dijkstra";
+import {
+  astar,
+  getNodesInShortestPathOrder as getAstarPath,
+} from "../algorithms/pathfinding/astar";
+import {
+  bfs,
+  getNodesInShortestPathOrder as getBfsPath,
+} from "../algorithms/pathfinding/bfs";
+import {
+  dfs,
+  getNodesInShortestPathOrder as getDfsPath,
+} from "../algorithms/pathfinding/dfs";
+import { getRecursiveDivisionMaze } from "../algorithms/maze/recursiveDivision";
+import { getRandomizedDFSMaze } from "../algorithms/maze/randomizedDFS";
+import { resetGridForPathfinding, clearWalls } from "../utils/gridUtils";
+import { AlgorithmStats, RaceStats } from "../components/Modals/StatsModal";
 
 /**
  * Callbacks for stats and scroll behavior
  */
 interface StatsCallbacks {
-  setVisualizationStats: React.Dispatch<React.SetStateAction<AlgorithmStats | RaceStats | null>>;
+  setVisualizationStats: React.Dispatch<
+    React.SetStateAction<AlgorithmStats | RaceStats | null>
+  >;
   scrollToStats: () => void;
+  showToast?: (msg: string) => void;
 }
 
 /**
@@ -89,37 +104,39 @@ export const useVisualization = (): UseVisualizationReturn => {
    */
   const clearVisualizationClasses = useCallback((): void => {
     // Remove visited and path classes from all nodes (both agents)
-    const visitedNodes = document.querySelectorAll('.node-visited');
-    const pathNodes = document.querySelectorAll('.node-path');
-    const visitedNodesSecond = document.querySelectorAll('.node-visited-second');
-    const pathNodesSecond = document.querySelectorAll('.node-path-second');
-    const overlapNodes = document.querySelectorAll('.node-visited-overlap');
+    const visitedNodes = document.querySelectorAll(".node-visited");
+    const pathNodes = document.querySelectorAll(".node-path");
+    const visitedNodesSecond = document.querySelectorAll(
+      ".node-visited-second"
+    );
+    const pathNodesSecond = document.querySelectorAll(".node-path-second");
+    const overlapNodes = document.querySelectorAll(".node-visited-overlap");
     // Simple path overlap class (for mixed color)
-    const pathOverlapNodes = document.querySelectorAll('.node-path-overlap');
+    const pathOverlapNodes = document.querySelectorAll(".node-path-overlap");
 
     visitedNodes.forEach((node) => {
-      node.classList.remove('node-visited');
+      node.classList.remove("node-visited");
     });
 
     pathNodes.forEach((node) => {
-      node.classList.remove('node-path');
+      node.classList.remove("node-path");
     });
 
     visitedNodesSecond.forEach((node) => {
-      node.classList.remove('node-visited-second');
+      node.classList.remove("node-visited-second");
     });
 
     pathNodesSecond.forEach((node) => {
-      node.classList.remove('node-path-second');
+      node.classList.remove("node-path-second");
     });
 
     overlapNodes.forEach((node) => {
-      node.classList.remove('node-visited-overlap');
+      node.classList.remove("node-visited-overlap");
     });
 
     // Clear simple path overlap class
     pathOverlapNodes.forEach((node) => {
-      node.classList.remove('node-path-overlap');
+      node.classList.remove("node-path-overlap");
     });
   }, []);
 
@@ -127,10 +144,7 @@ export const useVisualization = (): UseVisualizationReturn => {
    * Clears the visualization (both DOM and React state)
    */
   const clearVisualization = useCallback(
-    (
-      grid: Grid,
-      setGrid: React.Dispatch<React.SetStateAction<Grid>>
-    ): void => {
+    (grid: Grid, setGrid: React.Dispatch<React.SetStateAction<Grid>>): void => {
       // Stop any ongoing animation
       clearAllTimeouts();
       isAnimating.current = false;
@@ -168,9 +182,11 @@ export const useVisualization = (): UseVisualizationReturn => {
           }
 
           // Direct DOM manipulation for performance
-          const element = document.getElementById(`node-${node.row}-${node.col}`);
+          const element = document.getElementById(
+            `node-${node.row}-${node.col}`
+          );
           if (element) {
-            element.classList.add('node-visited');
+            element.classList.add("node-visited");
           }
 
           // If this is the last node, trigger path animation
@@ -208,11 +224,13 @@ export const useVisualization = (): UseVisualizationReturn => {
           }
 
           // Direct DOM manipulation
-          const element = document.getElementById(`node-${node.row}-${node.col}`);
+          const element = document.getElementById(
+            `node-${node.row}-${node.col}`
+          );
           if (element) {
             // Remove visited class first, then add path class
-            element.classList.remove('node-visited');
-            element.classList.add('node-path');
+            element.classList.remove("node-visited");
+            element.classList.add("node-path");
           }
 
           // If this is the last node, mark animation as complete
@@ -279,7 +297,7 @@ export const useVisualization = (): UseVisualizationReturn => {
 
       // Safety check
       if (!startNode || !finishNode) {
-        console.error('Start or Finish node not found!');
+        console.error("Start or Finish node not found!");
         return;
       }
 
@@ -320,26 +338,51 @@ export const useVisualization = (): UseVisualizationReturn => {
       const endTime = performance.now();
       const executionTime = endTime - startTime;
 
+      // Check if path was found (path length <= 1 means only start node or empty)
+      const pathFound = nodesInShortestPathOrder.length > 1;
+
       // Capture stats for single algorithm mode
+      // Use -1 for pathLength to indicate unreachable target
       const stats: AlgorithmStats = {
         algorithm,
         executionTime,
         visitedCount: visitedNodesInOrder.length,
-        pathLength: nodesInShortestPathOrder.length,
+        pathLength: pathFound ? nodesInShortestPathOrder.length : -1,
       };
 
       // === PHASE 2: ANIMATION (DOM Manipulation) ===
       // Now animate using setTimeout + DOM classList
       // React state is NOT updated - only CSS classes are toggled
       animateVisitedNodes(visitedNodesInOrder, speed, () => {
-        // After visited animation, animate shortest path
+        // After visited animation, check if path exists
+        if (!pathFound) {
+          // No path found - skip path animation, show toast, update stats
+          isAnimating.current = false;
+          setIsVisualizing(false);
+
+          if (statsCallbacks) {
+            statsCallbacks.setVisualizationStats(stats);
+            // Trigger toast notification for unreachable target
+            if (statsCallbacks.showToast) {
+              statsCallbacks.showToast(
+                "Target is unreachable! No path exists."
+              );
+            }
+            setTimeout(() => {
+              statsCallbacks.scrollToStats();
+            }, 500);
+          }
+          return;
+        }
+
+        // Path exists - animate shortest path
         const pathDelay = setTimeout(() => {
           animateShortestPath(nodesInShortestPathOrder, speed, () => {
             // === PHASE 3: CLEANUP ===
             // Animation complete - reset flags
             isAnimating.current = false;
             setIsVisualizing(false);
-            
+
             // Update stats and scroll to statistics section
             if (statsCallbacks) {
               statsCallbacks.setVisualizationStats(stats);
@@ -367,9 +410,9 @@ export const useVisualization = (): UseVisualizationReturn => {
    * Removes wall CSS classes from all nodes via DOM
    */
   const clearWallClasses = useCallback((): void => {
-    const wallNodes = document.querySelectorAll('.node-wall');
+    const wallNodes = document.querySelectorAll(".node-wall");
     wallNodes.forEach((node) => {
-      node.classList.remove('node-wall');
+      node.classList.remove("node-wall");
     });
   }, []);
 
@@ -379,11 +422,7 @@ export const useVisualization = (): UseVisualizationReturn => {
    * Protects Start/Finish nodes from being turned into walls
    */
   const animateMazeWalls = useCallback(
-    (
-      wallsInOrder: Node[],
-      speed: number,
-      onComplete: () => void
-    ): void => {
+    (wallsInOrder: Node[], speed: number, onComplete: () => void): void => {
       for (let i = 0; i < wallsInOrder.length; i++) {
         const timeoutId = setTimeout(() => {
           const node = wallsInOrder[i];
@@ -398,9 +437,11 @@ export const useVisualization = (): UseVisualizationReturn => {
           }
 
           // Direct DOM manipulation for wall animation
-          const element = document.getElementById(`node-${node.row}-${node.col}`);
+          const element = document.getElementById(
+            `node-${node.row}-${node.col}`
+          );
           if (element) {
-            element.classList.add('node-wall');
+            element.classList.add("node-wall");
           }
 
           // If this is the last wall, trigger completion
@@ -447,7 +488,7 @@ export const useVisualization = (): UseVisualizationReturn => {
       // Explicitly clear ALL visualization classes from DOM before starting
       // This ensures a clean slate even if React state and DOM are out of sync
       clearVisualizationClasses(); // Removes .node-visited and .node-path
-      clearWallClasses();          // Removes .node-wall
+      clearWallClasses(); // Removes .node-wall
 
       // Step A: Clear walls AND pathfinding state from React state
       // First reset pathfinding (isVisited, distance, previousNode)
@@ -469,7 +510,7 @@ export const useVisualization = (): UseVisualizationReturn => {
 
       // Safety check
       if (!startNode || !finishNode) {
-        console.error('Start or Finish node not found!');
+        console.error("Start or Finish node not found!");
         return;
       }
 
@@ -479,15 +520,23 @@ export const useVisualization = (): UseVisualizationReturn => {
 
       switch (mazeType) {
         case MazeType.RECURSIVE_DIVISION:
-          wallsInOrder = getRecursiveDivisionMaze(clearedGrid, startNode, finishNode);
+          wallsInOrder = getRecursiveDivisionMaze(
+            clearedGrid,
+            startNode,
+            finishNode
+          );
           break;
         case MazeType.RANDOMIZED_DFS:
-          wallsInOrder = getRandomizedDFSMaze(clearedGrid, startNode, finishNode);
+          wallsInOrder = getRandomizedDFSMaze(
+            clearedGrid,
+            startNode,
+            finishNode
+          );
           // DFS generates many walls - use faster animation (5ms min)
           animationSpeed = Math.max(5, speed / 3);
           break;
         default:
-          console.error('Unknown maze type:', mazeType);
+          console.error("Unknown maze type:", mazeType);
           return;
       }
 
@@ -503,11 +552,16 @@ export const useVisualization = (): UseVisualizationReturn => {
           // Step D: Sync React state with walls
           // This is CRUCIAL - without this, Dijkstra won't see the walls
           setGrid((currentGrid) => {
-            const newGrid = currentGrid.map((row) => row.map((node) => ({ ...node })));
+            const newGrid = currentGrid.map((row) =>
+              row.map((node) => ({ ...node }))
+            );
 
             // Mark all walls in the grid state
             for (const wall of wallsInOrder) {
-              if (!newGrid[wall.row][wall.col].isStart && !newGrid[wall.row][wall.col].isFinish) {
+              if (
+                !newGrid[wall.row][wall.col].isStart &&
+                !newGrid[wall.row][wall.col].isFinish
+              ) {
                 newGrid[wall.row][wall.col].isWall = true;
               }
             }
@@ -630,7 +684,7 @@ export const useVisualization = (): UseVisualizationReturn => {
 
       // Safety check
       if (!startNode1 || !finishNode1 || !startNode2 || !finishNode2) {
-        console.error('Start or Finish node not found!');
+        console.error("Start or Finish node not found!");
         return;
       }
 
@@ -653,42 +707,47 @@ export const useVisualization = (): UseVisualizationReturn => {
       const path1 = result1.pathNodes;
       const path2 = result2.pathNodes;
 
-      // Capture stats for both algorithms
+      // Check if paths were found (path length <= 1 means only start node or empty)
+      const path1Found = path1.length > 1;
+      const path2Found = path2.length > 1;
+
+      // Capture stats for both algorithms (-1 for unreachable)
       const stats1: AlgorithmStats = {
         algorithm: algo1,
         executionTime: endTime1 - startTime1,
         visitedCount: visited1.length,
-        pathLength: path1.length,
+        pathLength: path1Found ? path1.length : -1,
       };
 
       const stats2: AlgorithmStats = {
         algorithm: algo2,
         executionTime: endTime2 - startTime2,
         visitedCount: visited2.length,
-        pathLength: path2.length,
+        pathLength: path2Found ? path2.length : -1,
       };
 
       // Determine winner (shorter path = winner, tie if equal or no path)
-      let winner: 'agent1' | 'agent2' | 'tie' = 'tie';
-      if (path1.length > 0 && path2.length > 0) {
+      let winner: "agent1" | "agent2" | "tie" = "tie";
+      if (path1Found && path2Found) {
         if (path1.length < path2.length) {
-          winner = 'agent1';
+          winner = "agent1";
         } else if (path2.length < path1.length) {
-          winner = 'agent2';
+          winner = "agent2";
         }
         // If paths are equal, compare execution time
         if (path1.length === path2.length) {
           if (stats1.executionTime < stats2.executionTime) {
-            winner = 'agent1';
+            winner = "agent1";
           } else if (stats2.executionTime < stats1.executionTime) {
-            winner = 'agent2';
+            winner = "agent2";
           }
         }
-      } else if (path1.length > 0) {
-        winner = 'agent1';
-      } else if (path2.length > 0) {
-        winner = 'agent2';
+      } else if (path1Found) {
+        winner = "agent1";
+      } else if (path2Found) {
+        winner = "agent2";
       }
+      // If neither found a path, winner stays 'tie'
 
       const raceStats: RaceStats = {
         agent1: stats1,
@@ -710,15 +769,17 @@ export const useVisualization = (): UseVisualizationReturn => {
             const node1 = visited1[i];
             if (!node1.isStart && !node1.isFinish) {
               const key1 = `${node1.row}-${node1.col}`;
-              const element1 = document.getElementById(`node-${node1.row}-${node1.col}`);
+              const element1 = document.getElementById(
+                `node-${node1.row}-${node1.col}`
+              );
               if (element1) {
                 visitedByAgent1.add(key1);
                 // Check if Agent 2 already visited this node
                 if (visitedByAgent2.has(key1)) {
-                  element1.classList.remove('node-visited-second');
-                  element1.classList.add('node-visited-overlap');
+                  element1.classList.remove("node-visited-second");
+                  element1.classList.add("node-visited-overlap");
                 } else {
-                  element1.classList.add('node-visited');
+                  element1.classList.add("node-visited");
                 }
               }
             }
@@ -729,15 +790,17 @@ export const useVisualization = (): UseVisualizationReturn => {
             const node2 = visited2[i];
             if (!node2.isStart && !node2.isFinish) {
               const key2 = `${node2.row}-${node2.col}`;
-              const element2 = document.getElementById(`node-${node2.row}-${node2.col}`);
+              const element2 = document.getElementById(
+                `node-${node2.row}-${node2.col}`
+              );
               if (element2) {
                 visitedByAgent2.add(key2);
                 // Check if Agent 1 already visited this node
                 if (visitedByAgent1.has(key2)) {
-                  element2.classList.remove('node-visited');
-                  element2.classList.add('node-visited-overlap');
+                  element2.classList.remove("node-visited");
+                  element2.classList.add("node-visited-overlap");
                 } else {
-                  element2.classList.add('node-visited-second');
+                  element2.classList.add("node-visited-second");
                 }
               }
             }
@@ -769,15 +832,21 @@ export const useVisualization = (): UseVisualizationReturn => {
                     const pathNode1 = path1[j];
                     if (!pathNode1.isStart && !pathNode1.isFinish) {
                       const key1 = `${pathNode1.row}-${pathNode1.col}`;
-                      const element = document.getElementById(`node-${pathNode1.row}-${pathNode1.col}`);
+                      const element = document.getElementById(
+                        `node-${pathNode1.row}-${pathNode1.col}`
+                      );
                       if (element) {
-                        element.classList.remove('node-visited', 'node-visited-second', 'node-visited-overlap');
+                        element.classList.remove(
+                          "node-visited",
+                          "node-visited-second",
+                          "node-visited-overlap"
+                        );
                         // Check if this node is also in path2 (overlap)
                         if (path2Keys.has(key1)) {
                           // Simple overlap class (lime green for now)
-                          element.classList.add('node-path-overlap');
+                          element.classList.add("node-path-overlap");
                         } else {
-                          element.classList.add('node-path');
+                          element.classList.add("node-path");
                         }
                       }
                     }
@@ -788,15 +857,22 @@ export const useVisualization = (): UseVisualizationReturn => {
                     const pathNode2 = path2[j];
                     if (!pathNode2.isStart && !pathNode2.isFinish) {
                       const key2 = `${pathNode2.row}-${pathNode2.col}`;
-                      const element = document.getElementById(`node-${pathNode2.row}-${pathNode2.col}`);
+                      const element = document.getElementById(
+                        `node-${pathNode2.row}-${pathNode2.col}`
+                      );
                       if (element) {
-                        element.classList.remove('node-visited', 'node-visited-second', 'node-visited-overlap', 'node-path');
+                        element.classList.remove(
+                          "node-visited",
+                          "node-visited-second",
+                          "node-visited-overlap",
+                          "node-path"
+                        );
                         // Check if this node is also in path1 (overlap)
                         if (path1Keys.has(key2)) {
                           // Simple overlap class (lime green for now)
-                          element.classList.add('node-path-overlap');
+                          element.classList.add("node-path-overlap");
                         } else {
-                          element.classList.add('node-path-second');
+                          element.classList.add("node-path-second");
                         }
                       }
                     }
@@ -806,7 +882,7 @@ export const useVisualization = (): UseVisualizationReturn => {
                   if (j === maxPathLen - 1) {
                     isAnimating.current = false;
                     setIsVisualizing(false);
-                    
+
                     // Update stats and scroll to statistics section
                     if (statsCallbacks) {
                       statsCallbacks.setVisualizationStats(raceStats);
@@ -824,10 +900,16 @@ export const useVisualization = (): UseVisualizationReturn => {
               if (maxPathLen === 0) {
                 isAnimating.current = false;
                 setIsVisualizing(false);
-                
+
                 // Update stats and scroll even if no paths found
                 if (statsCallbacks) {
                   statsCallbacks.setVisualizationStats(raceStats);
+                  // Show toast if neither algorithm found a path
+                  if (!path1Found && !path2Found && statsCallbacks.showToast) {
+                    statsCallbacks.showToast(
+                      "Target is unreachable! Neither algorithm found a path."
+                    );
+                  }
                   setTimeout(() => {
                     statsCallbacks.scrollToStats();
                   }, 500);
@@ -846,7 +928,7 @@ export const useVisualization = (): UseVisualizationReturn => {
       if (maxVisitedLen === 0) {
         isAnimating.current = false;
         setIsVisualizing(false);
-        
+
         // Update stats and scroll even if nothing was visited
         if (statsCallbacks) {
           statsCallbacks.setVisualizationStats(raceStats);

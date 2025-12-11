@@ -1,6 +1,7 @@
 /**
  * StatisticsSection Styles
- * Full-page dashboard layout for algorithm statistics
+ * Compact High-Density Analytics Dashboard
+ * Designed to fit within 100vh without scrolling
  */
 
 .section {
@@ -9,9 +10,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  padding: 40px 20px;
+  background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+  padding: 20px 24px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .container {
@@ -19,332 +21,471 @@
   max-width: 1200px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 30px;
+  gap: 16px;
 }
 
-/* Header */
+/* === Header === */
 .header {
   text-align: center;
-  color: white;
+  padding: 0;
+}
+
+.headerBadge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #4caf50;
+  background: rgba(76, 175, 80, 0.15);
+  padding: 4px 12px;
+  border-radius: 12px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin: 0 0 10px 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin: 0 0 4px 0;
+  color: #f1f5f9;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  color: #94a3b8;
   margin: 0;
 }
 
-/* Empty State */
+/* === Empty State === */
 .emptyState {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   text-align: center;
-  color: white;
+  padding: 24px;
 }
 
 .emptyIcon {
-  font-size: 5rem;
-  opacity: 0.5;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chartIcon {
+  font-size: 3rem;
+  z-index: 1;
+  filter: grayscale(0.3);
+}
+
+.pulseRing {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
 }
 
 .emptyTitle {
-  font-size: 2rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #e2e8f0;
   margin: 0;
-  opacity: 0.8;
 }
 
 .emptyText {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  color: #64748b;
   margin: 0;
-  max-width: 400px;
+  max-width: 360px;
+  line-height: 1.5;
 }
 
-/* Single Algorithm View */
-.singleAlgorithm {
+.emptyHints {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-  width: 100%;
-  max-width: 800px;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
+.hint {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* === Algorithm Banner (Single Mode) === */
 .algorithmBanner {
   display: flex;
   align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 20px 40px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .algorithmIcon {
-  font-size: 2.5rem;
-}
-
-.algorithmTitle {
   font-size: 1.8rem;
-  color: white;
-  margin: 0;
-  font-weight: 600;
 }
 
-/* Stats Grid */
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  width: 100%;
-}
-
-/* Stat Card */
-.statCard {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-  padding: 25px 30px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.statCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.statCard.highlight {
-  border-color: rgba(102, 126, 234, 0.5);
-  background: rgba(102, 126, 234, 0.15);
-}
-
-.statIcon {
-  font-size: 2rem;
-}
-
-.statInfo {
+.algorithmInfo {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 2px;
 }
 
-.statLabel {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+.algorithmLabel {
+  font-size: 0.65rem;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.statValue {
-  font-size: 1.5rem;
+.algorithmName {
+  font-size: 1.1rem;
   font-weight: 700;
-  color: white;
+  color: #f1f5f9;
+  margin: 0;
 }
 
-/* Race Mode */
-.winnerBanner {
-  background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
-  padding: 15px 40px;
-  border-radius: 50px;
-  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+.pathStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4caf50;
+  background: rgba(76, 175, 80, 0.15);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
-.winnerText {
+.pathStatus.noPath {
+  color: #f44336;
+  background: rgba(244, 67, 54, 0.15);
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.statusIcon {
+  font-size: 0.85rem;
+}
+
+/* === Stats Grid (3-column layout) === */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.efficiencyCard {
+  grid-column: span 3;
+}
+
+.cardIcon {
+  font-size: 1.2rem;
+}
+
+.cardContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cardLabel {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardValue {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #f1f5f9;
 }
 
-.raceComparison {
-  display: flex;
-  gap: 30px;
-  width: 100%;
-  align-items: flex-start;
-  justify-content: center;
+.cardValue.unreachable {
+  color: #ef5350;
+  font-style: italic;
+  font-size: 1rem;
 }
 
-.agentColumn {
-  flex: 1;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.cardBar {
+  height: 4px;
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 2px;
+  overflow: hidden;
 }
 
-.agent1 .agentHeader {
-  border-left: 4px solid #ffeb3b;
+.cardBarFill {
+  height: 100%;
+  border-radius: 2px;
+  animation: fillBar 0.8s ease-out forwards;
 }
 
-.agent2 .agentHeader {
-  border-left: 4px solid #00e5ff;
+.cardBarFill.errorBar {
+  opacity: 0.8;
 }
 
-.agentHeader {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 15px 20px;
+@keyframes fillBar {
+  from {
+    width: 0% !important;
+  }
+}
+
+.cardNote {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* === Verdict Banner === */
+.verdictBanner {
+  background: linear-gradient(
+    135deg,
+    rgba(76, 175, 80, 0.15) 0%,
+    rgba(139, 195, 74, 0.08) 100%
+  );
+  border: 1px solid rgba(76, 175, 80, 0.25);
   border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  padding: 12px 20px;
+  text-align: center;
+  grid-column: span 3;
 }
 
-.agentTitle {
-  font-size: 1.2rem;
-  color: white;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.verdictBanner.tie {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.15) 0%,
+    rgba(255, 152, 0, 0.08) 100%
+  );
+  border-color: rgba(255, 193, 7, 0.25);
 }
 
-.winnerBadge {
-  font-size: 0.9rem;
-  background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
-  color: #1a1a2e;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-weight: 600;
-}
-
-.algorithmName {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.agentCards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.agentCards .statCard {
-  padding: 18px 20px;
-}
-
-.agentCards .statIcon {
-  font-size: 1.5rem;
-}
-
-.agentCards .statValue {
-  font-size: 1.2rem;
-}
-
-/* VS Divider */
-.vsDivider {
+.verdictContent {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 0;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.vsDivider span {
-  font-size: 2rem;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.3);
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+.verdictTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
 }
 
-/* Scroll Hint */
+.verdictSubtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.verdictDetails {
+  font-size: 0.75rem;
+  color: #4caf50;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* === Comparison Section (Race Mode) === */
+.comparisonSection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+/* === Details Table === */
+.detailsTable {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  width: 100%;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tableHeaderCell {
+  padding: 10px 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.agent1Header {
+  color: #667eea;
+}
+
+.agent2Header {
+  color: #f97316;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableCell {
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.valueCell {
+  font-weight: 600;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.winnerCell {
+  color: #4caf50;
+  background: rgba(76, 175, 80, 0.08);
+}
+
+.loserCell {
+  color: #f44336;
+  background: rgba(244, 67, 54, 0.05);
+}
+
+/* === Scroll Hint === */
 .scrollHint {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 20px;
-  animation: bounce 2s infinite;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.75rem;
+  padding-top: 8px;
 }
 
-.scrollHint span:first-child {
-  font-size: 1.5rem;
+.scrollArrow {
+  font-size: 1rem;
+  animation: float 2s ease-in-out infinite;
 }
 
-.scrollHint span:last-child {
-  font-size: 0.9rem;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
+@keyframes float {
+  0%,
+  100% {
     transform: translateY(0);
   }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
+  50% {
+    transform: translateY(-4px);
   }
 }
 
-/* Responsive */
+/* === Responsive === */
 @media (max-width: 900px) {
-  .section {
-    padding: 30px 15px;
-  }
-
-  .title {
-    font-size: 2rem;
-  }
-
   .statsGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  .raceComparison {
-    flex-direction: column;
-    align-items: center;
+  .efficiencyCard {
+    grid-column: span 2;
   }
-
-  .agentColumn {
-    max-width: 100%;
-    width: 100%;
+  .comparisonSection {
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  .vsDivider {
-    padding: 10px 0;
-  }
-
-  .vsDivider span {
-    font-size: 1.5rem;
+  .verdictBanner {
+    grid-column: span 2;
   }
 }
 
 @media (max-width: 600px) {
+  .section {
+    padding: 16px;
+  }
   .title {
-    font-size: 1.6rem;
-  }
-
-  .statCard {
-    padding: 15px 20px;
-  }
-
-  .statValue {
     font-size: 1.2rem;
   }
-
-  .algorithmBanner {
-    padding: 15px 25px;
+  .statsGrid {
+    grid-template-columns: 1fr;
   }
-
-  .algorithmTitle {
-    font-size: 1.4rem;
+  .efficiencyCard {
+    grid-column: span 1;
+  }
+  .comparisonSection {
+    grid-template-columns: 1fr;
+  }
+  .verdictBanner {
+    grid-column: span 1;
+  }
+  .verdictContent {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .algorithmBanner {
+    flex-direction: column;
+    text-align: center;
+    padding: 12px;
+  }
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 1fr;
+  }
+  .tableHeaderCell:first-child,
+  .tableCell:first-child {
+    background: rgba(255, 255, 255, 0.03);
+    font-weight: 600;
   }
 }

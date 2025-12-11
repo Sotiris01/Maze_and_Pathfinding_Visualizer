@@ -1,12 +1,13 @@
-import React, { useRef, useCallback } from 'react';
-import { GridProvider, useGridContext } from './context/GridContext';
-import Board from './components/Board';
-import { ControlPanel } from './components/Controls';
-import { StatisticsSection } from './components/Statistics';
-import { Legend } from './components/Legend';
-import { useVisualization } from './hooks/useVisualization';
-import { MazeType } from './types';
-import styles from './App.module.css';
+import React, { useRef, useCallback } from "react";
+import { GridProvider, useGridContext } from "./context/GridContext";
+import Board from "./components/Board";
+import { ControlPanel } from "./components/Controls";
+import { StatisticsSection } from "./components/Statistics";
+import { Legend } from "./components/Legend";
+import Toast from "./components/UI/Toast";
+import { useVisualization } from "./hooks/useVisualization";
+import { MazeType } from "./types";
+import styles from "./App.module.css";
 
 /**
  * MainContent Component - Two-Page Scroll Layout
@@ -14,8 +15,8 @@ import styles from './App.module.css';
  * Section 2: Statistics Dashboard
  */
 const MainContent: React.FC = () => {
-  const { 
-    grid, 
+  const {
+    grid,
     setGrid,
     setIsVisualizing,
     animationSpeed,
@@ -24,34 +25,56 @@ const MainContent: React.FC = () => {
     isRaceMode,
     clearAllWalls,
     visualizationStats,
-    setVisualizationStats
+    setVisualizationStats,
+    showToast,
   } = useGridContext();
-  
-  const { visualizePathfinding, visualizeRace, generateMaze, clearVisualization } = useVisualization();
-  
+
+  const {
+    visualizePathfinding,
+    visualizeRace,
+    generateMaze,
+    clearVisualization,
+  } = useVisualization();
+
   // Ref for the stats section to enable programmatic scrolling
   const statsSectionRef = useRef<HTMLDivElement>(null);
 
   // Scroll to stats section
   const scrollToStats = useCallback(() => {
-    statsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    statsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   // Stats callbacks for visualization hooks
   const statsCallbacks = {
     setVisualizationStats,
     scrollToStats,
+    showToast,
   };
 
   // Handler for visualize button (single algorithm)
   const handleVisualize = (): void => {
-    visualizePathfinding(selectedAlgorithm, grid, setGrid, setIsVisualizing, animationSpeed, statsCallbacks);
+    visualizePathfinding(
+      selectedAlgorithm,
+      grid,
+      setGrid,
+      setIsVisualizing,
+      animationSpeed,
+      statsCallbacks
+    );
   };
 
   // Handler for race mode visualization (two algorithms)
   const handleVisualizeRace = (): void => {
     if (secondAlgorithm) {
-      visualizeRace(selectedAlgorithm, secondAlgorithm, grid, setGrid, setIsVisualizing, animationSpeed, statsCallbacks);
+      visualizeRace(
+        selectedAlgorithm,
+        secondAlgorithm,
+        grid,
+        setGrid,
+        setIsVisualizing,
+        animationSpeed,
+        statsCallbacks
+      );
     }
   };
 
@@ -64,10 +87,16 @@ const MainContent: React.FC = () => {
   const handleGenerateMaze = (mazeType: MazeType): void => {
     handleClearPath();
     clearAllWalls();
-    
+
     requestAnimationFrame(() => {
       setTimeout(() => {
-        generateMaze(mazeType, grid, setGrid, setIsVisualizing, Math.max(15, animationSpeed / 2));
+        generateMaze(
+          mazeType,
+          grid,
+          setGrid,
+          setIsVisualizing,
+          Math.max(15, animationSpeed / 2)
+        );
       }, 50);
     });
   };
@@ -118,10 +147,7 @@ const MainContent: React.FC = () => {
 
       {/* Section 2: Statistics */}
       <div className={styles.snapSection} ref={statsSectionRef}>
-        <StatisticsSection 
-          stats={visualizationStats} 
-          isRaceMode={isRaceMode} 
-        />
+        <StatisticsSection stats={visualizationStats} isRaceMode={isRaceMode} />
       </div>
     </div>
   );
@@ -135,6 +161,7 @@ const App: React.FC = () => {
   return (
     <GridProvider>
       <MainContent />
+      <Toast />
     </GridProvider>
   );
 };

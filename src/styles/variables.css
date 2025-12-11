@@ -65,8 +65,8 @@ body {
 
 /* Prevent unwanted selection during drag operations */
 body.dragging {
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Root element */

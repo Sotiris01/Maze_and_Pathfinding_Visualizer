@@ -67,7 +67,8 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
         onMouseDown={(e) => onMouseDown(row, col, e)}
         onMouseEnter={() => onMouseEnter(row, col)}
         onMouseUp={onMouseUp}
-        role="gridcell"
+        role="button"
+        tabIndex={-1}
         aria-label={`Node at row ${row}, column ${col}${isStart ? ' (Start)' : ''}${isFinish ? ' (Finish)' : ''}${isWall ? ' (Wall)' : ''}`}
       />
     );

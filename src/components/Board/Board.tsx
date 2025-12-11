@@ -1,20 +1,20 @@
-import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { useGridContext } from '../../context/GridContext';
-import NodeComponent from '../Node';
+import React, { useCallback, useRef, useEffect, useState } from "react";
+import { useGridContext } from "../../context/GridContext";
+import NodeComponent from "../Node";
 import {
   getNewGridWithWallSet,
   getNewGridWithWallRemoved,
   getNewGridWithStartMoved,
   getNewGridWithFinishMoved,
-} from '../../utils/gridUtils';
-import styles from './Board.module.css';
+} from "../../utils/gridUtils";
+import styles from "./Board.module.css";
 
 /**
  * Board Component - Renders the 2D grid of nodes
- * 
+ *
  * Uses GridContext for state management and handles
  * mouse events for wall drawing functionality.
- * 
+ *
  * Features:
  * - Dynamic node sizing based on container dimensions
  * - Standard Click/Drag: Draw walls
@@ -32,7 +32,7 @@ const Board: React.FC = () => {
 
   // Ref for the board container to measure available space
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   // Dynamic node size state
   const [nodeSize, setNodeSize] = useState<number>(25);
 
@@ -63,11 +63,14 @@ const Board: React.FC = () => {
     // Calculate max size that fits both dimensions
     const maxSizeByWidth = availableWidth / colCount;
     const maxSizeByHeight = availableHeight / rowCount;
-    
+
     // Use the smaller value to ensure grid fits in both dimensions
     // Floor to avoid sub-pixel rendering issues, min 10px for usability
-    const calculatedSize = Math.max(10, Math.floor(Math.min(maxSizeByWidth, maxSizeByHeight)));
-    
+    const calculatedSize = Math.max(
+      10,
+      Math.floor(Math.min(maxSizeByWidth, maxSizeByHeight))
+    );
+
     setNodeSize(calculatedSize);
   }, [colCount, rowCount]);
 
@@ -109,7 +112,7 @@ const Board: React.FC = () => {
     (row: number, col: number, event: React.MouseEvent): void => {
       // Prevent default browser behavior (e.g., Ctrl+Click selection on Windows)
       event.preventDefault();
-      
+
       if (isVisualizing) return;
 
       const node = grid[row][col];
@@ -155,13 +158,17 @@ const Board: React.FC = () => {
 
       // Handle Start node dragging
       if (isDraggingStartRef.current) {
-        setGrid((currentGrid) => getNewGridWithStartMoved(currentGrid, row, col));
+        setGrid((currentGrid) =>
+          getNewGridWithStartMoved(currentGrid, row, col)
+        );
         return;
       }
 
       // Handle Finish node dragging
       if (isDraggingFinishRef.current) {
-        setGrid((currentGrid) => getNewGridWithFinishMoved(currentGrid, row, col));
+        setGrid((currentGrid) =>
+          getNewGridWithFinishMoved(currentGrid, row, col)
+        );
         return;
       }
 
@@ -205,10 +212,10 @@ const Board: React.FC = () => {
     };
 
     // Listen to mouseup on the entire document
-    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener("mouseup", handleGlobalMouseUp);
 
     return () => {
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
     };
   }, [setIsMousePressed]);
 
@@ -228,11 +235,11 @@ const Board: React.FC = () => {
 
   // Dynamic grid styling with calculated node size
   const boardStyle: React.CSSProperties = {
-    display: 'grid',
+    display: "grid",
     gridTemplateColumns: `repeat(${colCount}, ${nodeSize}px)`,
     gridTemplateRows: `repeat(${rowCount}, ${nodeSize}px)`,
     // Set CSS variable for node components to use
-    ['--node-size' as string]: `${nodeSize}px`,
+    ["--node-size" as string]: `${nodeSize}px`,
   };
 
   return (
@@ -243,10 +250,11 @@ const Board: React.FC = () => {
       onDragStart={handleDragStart}
       onContextMenu={handleContextMenu}
     >
+      {/* eslint-disable-next-line react/forbid-dom-props */}
       <div
         className={styles.board}
         style={boardStyle}
-        role="grid"
+        role="presentation"
         aria-label="Pathfinding Grid"
       >
         {grid.map((row) =>

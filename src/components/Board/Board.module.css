@@ -11,12 +11,12 @@
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  
+
   /* Prevent text selection while drawing walls */
-  user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  user-select: none;
 }
 
 .board {
@@ -25,14 +25,14 @@
   border: 2px solid #34495e;
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  
+
   /* Center the grid within the board */
   justify-content: center;
   align-content: center;
-  
-  /* Prevent drag artifacts */
+
+  /* Prevent drag artifacts (webkit-only, Firefox doesn't need it) */
+  /* stylelint-disable-next-line property-no-vendor-prefix */
   -webkit-user-drag: none;
-  user-drag: none;
 }
 
 /* Disable pointer events on the board when visualizing */
@@ -42,7 +42,10 @@
 
 /* Ensure crisp rendering */
 .board * {
-  image-rendering: crisp-edges;
+  /* stylelint-disable-next-line value-no-vendor-prefix */
+  -webkit-image-rendering: -webkit-optimize-contrast;
   image-rendering: -moz-crisp-edges;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
