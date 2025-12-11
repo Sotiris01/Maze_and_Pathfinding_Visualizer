@@ -6,11 +6,11 @@
   "description": "An interactive web application that visualizes pathfinding and maze generation algorithms",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/maze-pathfinding-visualizer.git"
+    "url": "https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer.git"
   },
-  "homepage": "https://github.com/yourusername/maze-pathfinding-visualizer#readme",
+  "homepage": "https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/maze-pathfinding-visualizer/issues"
+    "url": "https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer/issues"
   },
   "scripts": {
     "dev": "vite",
@@ -40,6 +40,6 @@
     "react",
     "typescript"
   ],
-  "author": "",
+  "author": "Sotiris Mpalatsias <sotiris.mp@gmail.com>",
   "license": "MIT"
 }
