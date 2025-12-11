@@ -1,0 +1,125 @@
+/* ===========================================
+   Accordion Component Styles
+   Dark minimalist collapsible sections
+   =========================================== */
+
+.accordion {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.accordion:hover {
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+.accordion.open {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* Header Button */
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.header:focus {
+  outline: none;
+}
+
+.header:focus-visible {
+  outline: 2px solid rgba(102, 126, 234, 0.5);
+  outline-offset: -2px;
+}
+
+/* Title Wrapper */
+.titleWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  letter-spacing: 0.3px;
+}
+
+/* Chevron Icon */
+.chevron {
+  color: #64748b;
+  transition: transform 0.3s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+  color: #667eea;
+}
+
+.header:hover .chevron {
+  color: #94a3b8;
+}
+
+.accordion.open .header:hover .chevron {
+  color: #818cf8;
+}
+
+/* Content Wrapper - Handles smooth height animation */
+.contentWrapper {
+  overflow: hidden;
+  transition: height 0.3s ease;
+}
+
+/* Content - Inner padding and gap */
+.content {
+  padding: 0 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===========================================
+   Animation Refinements
+   =========================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.accordion.open .content > * {
+  animation: fadeIn 0.2s ease forwards;
+}
+
+.accordion.open .content > *:nth-child(1) { animation-delay: 0.05s; }
+.accordion.open .content > *:nth-child(2) { animation-delay: 0.1s; }
+.accordion.open .content > *:nth-child(3) { animation-delay: 0.15s; }
+.accordion.open .content > *:nth-child(4) { animation-delay: 0.2s; }
+.accordion.open .content > *:nth-child(5) { animation-delay: 0.25s; }

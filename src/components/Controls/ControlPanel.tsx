@@ -1,14 +1,18 @@
 /**
  * ControlPanel Component
- * Phase B & C: Sidebar control panel for algorithm selection, visualization, and maze generation
+ * Professional sidebar with grouped accordion sections
  *
- * Positioned to the RIGHT of the Board in a 2-column layout.
- * Contains algorithm selection, maze generation, visualization controls, and grid settings.
+ * Redesigned with clean, minimalist UI featuring:
+ * - Collapsible accordion sections
+ * - Logical grouping of controls
+ * - Prominent primary CTA
+ * - Dark theme with subtle accents
  */
 
 import React from 'react';
 import { useGridContext } from '../../context/GridContext';
 import { AlgorithmType, MazeType } from '../../types';
+import Accordion from './Accordion';
 import styles from './ControlPanel.module.css';
 
 /**
@@ -23,28 +27,32 @@ interface ControlPanelProps {
 
 /**
  * Algorithm options for the dropdown
- * All pathfinding algorithms implemented (Phase D complete)
  */
-const ALGORITHM_OPTIONS: { value: AlgorithmType; label: string; disabled: boolean }[] = [
-  { value: AlgorithmType.DIJKSTRA, label: "Dijkstra's Algorithm", disabled: false },
-  { value: AlgorithmType.ASTAR, label: 'A* Search', disabled: false },
-  { value: AlgorithmType.BFS, label: 'Breadth-First Search', disabled: false },
-  { value: AlgorithmType.DFS, label: 'Depth-First Search', disabled: false },
+const ALGORITHM_OPTIONS: { value: AlgorithmType; label: string }[] = [
+  { value: AlgorithmType.DIJKSTRA, label: "Dijkstra's Algorithm" },
+  { value: AlgorithmType.ASTAR, label: 'A* Search' },
+  { value: AlgorithmType.BFS, label: 'Breadth-First Search' },
+  { value: AlgorithmType.DFS, label: 'Depth-First Search' },
 ];
 
 /**
  * Maze generation options for the dropdown
  */
-const MAZE_OPTIONS: { value: MazeType | 'none'; label: string; disabled: boolean }[] = [
-  { value: 'none', label: 'No Maze', disabled: false },
-  { value: MazeType.RECURSIVE_DIVISION, label: 'Recursive Division', disabled: false },
-  { value: MazeType.RANDOMIZED_DFS, label: 'Randomized DFS', disabled: false },
+const MAZE_OPTIONS: { value: MazeType | 'none'; label: string }[] = [
+  { value: 'none', label: 'Select a maze type...' },
+  { value: MazeType.RECURSIVE_DIVISION, label: 'Recursive Division' },
+  { value: MazeType.RANDOMIZED_DFS, label: 'Randomized DFS' },
 ];
 
 /**
- * ControlPanel - Sidebar component for controlling the visualization
+ * ControlPanel - Redesigned sidebar with accordion groups
  */
-const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, onGenerateMaze, onVisualizeRace }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({
+  onVisualize,
+  onClearPath,
+  onGenerateMaze,
+  onVisualizeRace,
+}) => {
   const {
     selectedAlgorithm,
     setSelectedAlgorithm,
@@ -64,32 +72,29 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, o
     setAnimationSpeed,
   } = useGridContext();
 
-  // Handler for algorithm selection
+  // === Handlers ===
+
   const handleAlgorithmChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     setSelectedAlgorithm(e.target.value as AlgorithmType);
   };
 
-  // Handler for second algorithm selection (Race Mode)
   const handleSecondAlgorithmChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     setSecondAlgorithm(e.target.value as AlgorithmType);
   };
 
-  // Handler for race mode toggle
   const handleRaceModeToggle = (): void => {
     if (isVisualizing) return;
     const newRaceMode = !isRaceMode;
     setIsRaceMode(newRaceMode);
-    // Set default second algorithm if enabling race mode
     if (newRaceMode && !secondAlgorithm) {
-      // Pick a different algorithm than the first one
-      const defaultSecond = selectedAlgorithm === AlgorithmType.DIJKSTRA 
-        ? AlgorithmType.ASTAR 
-        : AlgorithmType.DIJKSTRA;
+      const defaultSecond =
+        selectedAlgorithm === AlgorithmType.DIJKSTRA
+          ? AlgorithmType.ASTAR
+          : AlgorithmType.DIJKSTRA;
       setSecondAlgorithm(defaultSecond);
     }
   };
 
-  // Handler for visualize button (supports both single and race mode)
   const handleVisualize = (): void => {
     if (isRaceMode && secondAlgorithm) {
       onVisualizeRace();
@@ -98,38 +103,32 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, o
     }
   };
 
-  // Handler for maze selection
   const handleMazeChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const value = e.target.value;
     setSelectedMaze(value === 'none' ? null : (value as MazeType));
   };
 
-  // Handler for generate maze button
   const handleGenerateMaze = (): void => {
     if (selectedMaze) {
       onGenerateMaze(selectedMaze);
     }
   };
 
-  // Handler for row slider
   const handleRowChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newRows = parseInt(e.target.value, 10);
     resizeGrid(newRows, colCount);
   };
 
-  // Handler for column slider
   const handleColChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newCols = parseInt(e.target.value, 10);
     resizeGrid(rowCount, newCols);
   };
 
-  // Handler for speed slider
   const handleSpeedChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newSpeed = parseInt(e.target.value, 10);
     setAnimationSpeed(newSpeed);
   };
 
-  // Calculate speed label (inverse - lower delay = faster)
   const getSpeedLabel = (): string => {
     if (animationSpeed <= 5) return 'Very Fast';
     if (animationSpeed <= 10) return 'Fast';
@@ -140,181 +139,215 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onVisualize, onClearPath, o
 
   return (
     <aside className={styles.panel}>
-      {/* Header */}
-      <h2 className={styles.header}>Controls</h2>
+      {/* Panel Header */}
+      <header className={styles.panelHeader}>
+        <h2 className={styles.panelTitle}>Controls</h2>
+        <p className={styles.panelSubtitle}>Configure & Visualize</p>
+      </header>
 
-      {/* Algorithm Selection Section */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Algorithm</h3>
-        <select
-          value={selectedAlgorithm}
-          onChange={handleAlgorithmChange}
-          disabled={isVisualizing}
-          className={styles.select}
-        >
-          {ALGORITHM_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value} disabled={option.disabled}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-
-        {/* Race Mode Toggle */}
-        <div className={styles.toggleContainer}>
-          <span className={styles.toggleLabel}>🏁 Race Mode</span>
-          <div
-            className={`${styles.toggle} ${isRaceMode ? styles.toggleActive : ''} ${isVisualizing ? styles.toggleDisabled : ''}`}
-            onClick={handleRaceModeToggle}
-            role="switch"
-            aria-checked={isRaceMode}
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && handleRaceModeToggle()}
-          />
-        </div>
-
-        {/* Second Algorithm (shown when Race Mode is active) */}
-        {isRaceMode && (
-          <div className={styles.secondAlgorithmSection}>
-            <div className={styles.secondAlgorithmLabel}>Agent 2</div>
+      {/* Accordion Sections */}
+      <div className={styles.accordionContainer}>
+        {/* === Section 1: Pathfinding Algorithms === */}
+        <Accordion title="Pathfinding Algorithms" icon="🤖" defaultOpen={true}>
+          {/* Algorithm Selection */}
+          <div className={styles.controlGroup}>
+            <label className={styles.label}>Algorithm</label>
             <select
-              value={secondAlgorithm || ''}
-              onChange={handleSecondAlgorithmChange}
+              value={selectedAlgorithm}
+              onChange={handleAlgorithmChange}
               disabled={isVisualizing}
-              className={styles.selectSecond}
+              className={styles.select}
             >
               {ALGORITHM_OPTIONS.map((option) => (
-                <option 
-                  key={option.value} 
-                  value={option.value} 
-                  disabled={option.disabled || option.value === selectedAlgorithm}
-                >
-                  {option.label}{option.value === selectedAlgorithm ? ' (Agent 1)' : ''}
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
           </div>
-        )}
-      </section>
 
-      {/* Maze Generation Section */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Maze</h3>
-        <select
-          value={selectedMaze || 'none'}
-          onChange={handleMazeChange}
-          disabled={isVisualizing}
-          className={styles.select}
-        >
-          {MAZE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value} disabled={option.disabled}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={handleGenerateMaze}
-          disabled={isVisualizing || !selectedMaze}
-          className={`${styles.button} ${styles.buttonMaze}`}
-        >
-          Generate Maze
-        </button>
-      </section>
+          {/* Race Mode Toggle */}
+          <div className={styles.toggleRow}>
+            <span className={styles.toggleLabel}>🏁 Race Mode</span>
+            <button
+              type="button"
+              className={`${styles.toggle} ${isRaceMode ? styles.toggleActive : ''}`}
+              onClick={handleRaceModeToggle}
+              disabled={isVisualizing}
+              aria-pressed={isRaceMode}
+            >
+              <span className={styles.toggleKnob} />
+            </button>
+          </div>
 
-      {/* Visualization Actions */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Actions</h3>
-        <button
-          onClick={handleVisualize}
-          disabled={isVisualizing || (isRaceMode && !secondAlgorithm)}
-          className={`${styles.button} ${isRaceMode ? styles.buttonRace : styles.buttonVisualize}`}
-        >
-          {isVisualizing ? 'Visualizing...' : isRaceMode ? '🏁 Race!' : 'Visualize!'}
-        </button>
-        <button
-          onClick={onClearPath}
-          disabled={isVisualizing}
-          className={`${styles.button} ${styles.buttonClear}`}
-        >
-          Clear Path
-        </button>
-      </section>
+          {/* Second Algorithm (Race Mode) */}
+          {isRaceMode && (
+            <div className={styles.controlGroup}>
+              <label className={styles.labelSecondary}>Agent 2 Algorithm</label>
+              <select
+                value={secondAlgorithm || ''}
+                onChange={handleSecondAlgorithmChange}
+                disabled={isVisualizing}
+                className={`${styles.select} ${styles.selectSecondary}`}
+              >
+                {ALGORITHM_OPTIONS.map((option) => (
+                  <option
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.value === selectedAlgorithm}
+                  >
+                    {option.label}
+                    {option.value === selectedAlgorithm ? ' (Agent 1)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
-      {/* Speed Control */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Speed</h3>
-        <div className={styles.sliderGroup}>
-          <input
-            type="range"
-            min="1"
-            max="50"
-            value={animationSpeed}
-            onChange={handleSpeedChange}
+          {/* Primary CTA - Visualize Button */}
+          <button
+            onClick={handleVisualize}
+            disabled={isVisualizing || (isRaceMode && !secondAlgorithm)}
+            className={`${styles.buttonPrimary} ${isRaceMode ? styles.buttonRace : ''}`}
+          >
+            {isVisualizing ? (
+              <>
+                <span className={styles.spinner} />
+                Visualizing...
+              </>
+            ) : isRaceMode ? (
+              '🏁 Start Race!'
+            ) : (
+              '▶ Visualize!'
+            )}
+          </button>
+        </Accordion>
+
+        {/* === Section 2: Maze Generation === */}
+        <Accordion title="Maze Generation" icon="🧩">
+          <div className={styles.controlGroup}>
+            <label className={styles.label}>Maze Type</label>
+            <select
+              value={selectedMaze || 'none'}
+              onChange={handleMazeChange}
+              disabled={isVisualizing}
+              className={styles.select}
+            >
+              {MAZE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={handleGenerateMaze}
+            disabled={isVisualizing || !selectedMaze}
+            className={styles.buttonSecondary}
+          >
+            🔨 Generate Maze
+          </button>
+
+          <button
+            onClick={clearAllWalls}
             disabled={isVisualizing}
-            className={styles.slider}
-          />
-          <span className={styles.sliderValue}>{getSpeedLabel()}</span>
-        </div>
-      </section>
+            className={styles.buttonGhost}
+          >
+            ✕ Clear All Walls
+          </button>
+        </Accordion>
 
-      {/* Grid Settings */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Grid Size</h3>
-        <div className={styles.sliderGroup}>
-          <label htmlFor="panel-rows">Rows: {rowCount}</label>
-          <input
-            id="panel-rows"
-            type="range"
-            min="5"
-            max="40"
-            value={rowCount}
-            onChange={handleRowChange}
-            disabled={isVisualizing}
-            className={styles.slider}
-          />
-        </div>
-        <div className={styles.sliderGroup}>
-          <label htmlFor="panel-cols">Cols: {colCount}</label>
-          <input
-            id="panel-cols"
-            type="range"
-            min="5"
-            max="60"
-            value={colCount}
-            onChange={handleColChange}
-            disabled={isVisualizing}
-            className={styles.slider}
-          />
-        </div>
-      </section>
+        {/* === Section 3: Grid Settings === */}
+        <Accordion title="Grid Settings" icon="⚙️">
+          {/* Speed Control */}
+          <div className={styles.controlGroup}>
+            <div className={styles.sliderHeader}>
+              <label className={styles.label}>Animation Speed</label>
+              <span className={styles.sliderValue}>{getSpeedLabel()}</span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="50"
+              value={animationSpeed}
+              onChange={handleSpeedChange}
+              disabled={isVisualizing}
+              className={styles.slider}
+            />
+            <div className={styles.sliderLabels}>
+              <span>Fast</span>
+              <span>Slow</span>
+            </div>
+          </div>
 
-      {/* Board Actions */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Board</h3>
-        <button
-          onClick={resetBoard}
-          disabled={isVisualizing}
-          className={`${styles.button} ${styles.buttonReset}`}
-        >
-          Reset Board
-        </button>
-        <button
-          onClick={clearAllWalls}
-          disabled={isVisualizing}
-          className={`${styles.button} ${styles.buttonWalls}`}
-        >
-          Clear Walls
-        </button>
-      </section>
+          {/* Row Count */}
+          <div className={styles.controlGroup}>
+            <div className={styles.sliderHeader}>
+              <label className={styles.label}>Rows</label>
+              <span className={styles.sliderValue}>{rowCount}</span>
+            </div>
+            <input
+              type="range"
+              min="5"
+              max="40"
+              value={rowCount}
+              onChange={handleRowChange}
+              disabled={isVisualizing}
+              className={styles.slider}
+            />
+          </div>
 
-      {/* Instructions */}
-      <section className={styles.instructions}>
-        <h3 className={styles.sectionTitle}>Instructions</h3>
-        <ul>
-          <li>Click & drag to draw walls</li>
-          <li>Ctrl + Click to erase walls</li>
-          <li>Drag 🟢 Start or 🔴 Finish nodes</li>
+          {/* Column Count */}
+          <div className={styles.controlGroup}>
+            <div className={styles.sliderHeader}>
+              <label className={styles.label}>Columns</label>
+              <span className={styles.sliderValue}>{colCount}</span>
+            </div>
+            <input
+              type="range"
+              min="5"
+              max="60"
+              value={colCount}
+              onChange={handleColChange}
+              disabled={isVisualizing}
+              className={styles.slider}
+            />
+          </div>
+
+          {/* Board Actions */}
+          <div className={styles.buttonRow}>
+            <button
+              onClick={onClearPath}
+              disabled={isVisualizing}
+              className={styles.buttonGhost}
+            >
+              Clear Path
+            </button>
+            <button
+              onClick={resetBoard}
+              disabled={isVisualizing}
+              className={styles.buttonGhost}
+            >
+              Reset Board
+            </button>
+          </div>
+        </Accordion>
+      </div>
+
+      {/* Footer Instructions */}
+      <footer className={styles.footer}>
+        <div className={styles.instructionTitle}>Quick Tips</div>
+        <ul className={styles.instructionList}>
+          <li>
+            <kbd>Click</kbd> + drag to draw walls
+          </li>
+          <li>
+            <kbd>Ctrl</kbd> + click to erase
+          </li>
+          <li>Drag <span className={styles.nodeHint}>🟢</span> or <span className={styles.nodeHint}>🔴</span> to move</li>
         </ul>
-      </section>
+      </footer>
     </aside>
   );
 };

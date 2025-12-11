@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { Grid, AlgorithmType, MazeType, GRID_ROWS, GRID_COLS } from '../types';
 import { getInitialGrid, resetGridForPathfinding, clearWalls } from '../utils/gridUtils';
+import { AlgorithmStats, RaceStats } from '../components/Modals/StatsModal';
 
 /**
  * Grid Context Type Definition
@@ -47,6 +48,10 @@ interface GridContextType {
   animationSpeed: number;
   setAnimationSpeed: React.Dispatch<React.SetStateAction<number>>;
 
+  // Visualization Stats (for Statistics Section)
+  visualizationStats: AlgorithmStats | RaceStats | null;
+  setVisualizationStats: React.Dispatch<React.SetStateAction<AlgorithmStats | RaceStats | null>>;
+
   // Helper Functions
   resetBoard: () => void;
   clearPath: () => void;
@@ -76,6 +81,8 @@ const defaultContextValue: GridContextType = {
   setSelectedMaze: () => {},
   animationSpeed: 10,
   setAnimationSpeed: () => {},
+  visualizationStats: null,
+  setVisualizationStats: () => {},
   resetBoard: () => {},
   clearPath: () => {},
   clearAllWalls: () => {},
@@ -135,6 +142,9 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
 
   // Animation Speed (delay between node animations in ms)
   const [animationSpeed, setAnimationSpeed] = useState<number>(10);
+
+  // Visualization Stats (displayed in Statistics Section)
+  const [visualizationStats, setVisualizationStats] = useState<AlgorithmStats | RaceStats | null>(null);
 
   /**
    * Resets the entire board to initial state with current dimensions
@@ -196,6 +206,8 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
     setSelectedMaze,
     animationSpeed,
     setAnimationSpeed,
+    visualizationStats,
+    setVisualizationStats,
     resetBoard,
     clearPath,
     clearAllWalls,

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { useGridContext } from '../../context/GridContext';
 import NodeComponent from '../Node';
 import {
@@ -15,7 +15,8 @@ import styles from './Board.module.css';
  * Uses GridContext for state management and handles
  * mouse events for wall drawing functionality.
  * 
- * Supports two modes:
+ * Features:
+ * - Dynamic node sizing based on container dimensions
  * - Standard Click/Drag: Draw walls
  * - Ctrl/Cmd + Click/Drag: Erase walls (Eraser mode)
  */
@@ -29,6 +30,12 @@ const Board: React.FC = () => {
     rowCount,
   } = useGridContext();
 
+  // Ref for the board container to measure available space
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Dynamic node size state
+  const [nodeSize, setNodeSize] = useState<number>(25);
+
   // Track eraser mode - persists throughout the drag operation
   const isEraserModeRef = useRef<boolean>(false);
   // Track mouse pressed state with ref to avoid stale closure issues
@@ -37,6 +44,61 @@ const Board: React.FC = () => {
   const isDraggingStartRef = useRef<boolean>(false);
   // Track dragging Finish node
   const isDraggingFinishRef = useRef<boolean>(false);
+
+  /**
+   * Calculate and set the optimal node size based on container dimensions
+   * Ensures the entire grid fits without scrollbars
+   */
+  const calculateNodeSize = useCallback(() => {
+    if (!containerRef.current) return;
+
+    const container = containerRef.current;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
+    // Account for border (2px on each side = 4px total)
+    const availableWidth = containerWidth - 4;
+    const availableHeight = containerHeight - 4;
+
+    // Calculate max size that fits both dimensions
+    const maxSizeByWidth = availableWidth / colCount;
+    const maxSizeByHeight = availableHeight / rowCount;
+    
+    // Use the smaller value to ensure grid fits in both dimensions
+    // Floor to avoid sub-pixel rendering issues, min 10px for usability
+    const calculatedSize = Math.max(10, Math.floor(Math.min(maxSizeByWidth, maxSizeByHeight)));
+    
+    setNodeSize(calculatedSize);
+  }, [colCount, rowCount]);
+
+  /**
+   * ResizeObserver to recalculate node size when container changes
+   */
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Initial calculation
+    calculateNodeSize();
+
+    // Create ResizeObserver to watch for container size changes
+    const resizeObserver = new ResizeObserver(() => {
+      calculateNodeSize();
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [calculateNodeSize]);
+
+  /**
+   * Recalculate when grid dimensions change
+   */
+  useEffect(() => {
+    calculateNodeSize();
+  }, [rowCount, colCount, calculateNodeSize]);
 
   /**
    * Handle mouse down on a node - starts wall drawing/erasing or Start/Finish dragging
@@ -164,15 +226,18 @@ const Board: React.FC = () => {
     e.preventDefault();
   };
 
-  // Dynamic grid styling based on current dimensions
+  // Dynamic grid styling with calculated node size
   const boardStyle: React.CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: `repeat(${colCount}, 25px)`,
-    gridTemplateRows: `repeat(${rowCount}, 25px)`,
+    gridTemplateColumns: `repeat(${colCount}, ${nodeSize}px)`,
+    gridTemplateRows: `repeat(${rowCount}, ${nodeSize}px)`,
+    // Set CSS variable for node components to use
+    ['--node-size' as string]: `${nodeSize}px`,
   };
 
   return (
     <div
+      ref={containerRef}
       className={styles.boardContainer}
       onMouseLeave={handleMouseUp}
       onDragStart={handleDragStart}

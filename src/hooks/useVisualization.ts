@@ -15,6 +15,15 @@ import { dfs, getNodesInShortestPathOrder as getDfsPath } from '../algorithms/pa
 import { getRecursiveDivisionMaze } from '../algorithms/maze/recursiveDivision';
 import { getRandomizedDFSMaze } from '../algorithms/maze/randomizedDFS';
 import { resetGridForPathfinding, clearWalls } from '../utils/gridUtils';
+import { AlgorithmStats, RaceStats } from '../components/Modals/StatsModal';
+
+/**
+ * Callbacks for stats and scroll behavior
+ */
+interface StatsCallbacks {
+  setVisualizationStats: React.Dispatch<React.SetStateAction<AlgorithmStats | RaceStats | null>>;
+  scrollToStats: () => void;
+}
 
 /**
  * Return type for the useVisualization hook
@@ -25,7 +34,8 @@ interface UseVisualizationReturn {
     grid: Grid,
     setGrid: React.Dispatch<React.SetStateAction<Grid>>,
     setIsVisualizing: React.Dispatch<React.SetStateAction<boolean>>,
-    speed: number
+    speed: number,
+    statsCallbacks?: StatsCallbacks
   ) => void;
   visualizeRace: (
     algo1: AlgorithmType,
@@ -33,7 +43,8 @@ interface UseVisualizationReturn {
     grid: Grid,
     setGrid: React.Dispatch<React.SetStateAction<Grid>>,
     setIsVisualizing: React.Dispatch<React.SetStateAction<boolean>>,
-    speed: number
+    speed: number,
+    statsCallbacks?: StatsCallbacks
   ) => void;
   generateMaze: (
     mazeType: MazeType,
@@ -233,7 +244,8 @@ export const useVisualization = (): UseVisualizationReturn => {
       grid: Grid,
       _setGrid: React.Dispatch<React.SetStateAction<Grid>>, // Unused - kept for API consistency
       setIsVisualizing: React.Dispatch<React.SetStateAction<boolean>>,
-      speed: number
+      speed: number,
+      statsCallbacks?: StatsCallbacks
     ): void => {
       // Prevent multiple visualizations
       if (isAnimating.current) return;
@@ -281,6 +293,9 @@ export const useVisualization = (): UseVisualizationReturn => {
       let visitedNodesInOrder: Node[] = [];
       let nodesInShortestPathOrder: Node[] = [];
 
+      // Start timing for metrics
+      const startTime = performance.now();
+
       switch (algorithm) {
         case AlgorithmType.ASTAR:
           visitedNodesInOrder = astar(algorithmGrid, startNode, finishNode);
@@ -301,6 +316,18 @@ export const useVisualization = (): UseVisualizationReturn => {
           break;
       }
 
+      // End timing
+      const endTime = performance.now();
+      const executionTime = endTime - startTime;
+
+      // Capture stats for single algorithm mode
+      const stats: AlgorithmStats = {
+        algorithm,
+        executionTime,
+        visitedCount: visitedNodesInOrder.length,
+        pathLength: nodesInShortestPathOrder.length,
+      };
+
       // === PHASE 2: ANIMATION (DOM Manipulation) ===
       // Now animate using setTimeout + DOM classList
       // React state is NOT updated - only CSS classes are toggled
@@ -312,6 +339,15 @@ export const useVisualization = (): UseVisualizationReturn => {
             // Animation complete - reset flags
             isAnimating.current = false;
             setIsVisualizing(false);
+            
+            // Update stats and scroll to statistics section
+            if (statsCallbacks) {
+              statsCallbacks.setVisualizationStats(stats);
+              // Small delay before scrolling to let user see the final path
+              setTimeout(() => {
+                statsCallbacks.scrollToStats();
+              }, 500);
+            }
             // NOTE: We intentionally do NOT sync React state here
             // The visual state (DOM classes) is the source of truth during visualization
           });
@@ -548,7 +584,8 @@ export const useVisualization = (): UseVisualizationReturn => {
       grid: Grid,
       _setGrid: React.Dispatch<React.SetStateAction<Grid>>,
       setIsVisualizing: React.Dispatch<React.SetStateAction<boolean>>,
-      speed: number
+      speed: number,
+      statsCallbacks?: StatsCallbacks
     ): void => {
       // Prevent multiple visualizations
       if (isAnimating.current) return;
@@ -602,14 +639,62 @@ export const useVisualization = (): UseVisualizationReturn => {
       setIsVisualizing(true);
 
       // === PHASE 1: CALCULATION ===
-      // Run both algorithms on their respective grid copies
+      // Run both algorithms on their respective grid copies with timing
+      const startTime1 = performance.now();
       const result1 = runAlgorithm(algo1, grid1, startNode1, finishNode1);
+      const endTime1 = performance.now();
+
+      const startTime2 = performance.now();
       const result2 = runAlgorithm(algo2, grid2, startNode2, finishNode2);
+      const endTime2 = performance.now();
 
       const visited1 = result1.visitedNodes;
       const visited2 = result2.visitedNodes;
       const path1 = result1.pathNodes;
       const path2 = result2.pathNodes;
+
+      // Capture stats for both algorithms
+      const stats1: AlgorithmStats = {
+        algorithm: algo1,
+        executionTime: endTime1 - startTime1,
+        visitedCount: visited1.length,
+        pathLength: path1.length,
+      };
+
+      const stats2: AlgorithmStats = {
+        algorithm: algo2,
+        executionTime: endTime2 - startTime2,
+        visitedCount: visited2.length,
+        pathLength: path2.length,
+      };
+
+      // Determine winner (shorter path = winner, tie if equal or no path)
+      let winner: 'agent1' | 'agent2' | 'tie' = 'tie';
+      if (path1.length > 0 && path2.length > 0) {
+        if (path1.length < path2.length) {
+          winner = 'agent1';
+        } else if (path2.length < path1.length) {
+          winner = 'agent2';
+        }
+        // If paths are equal, compare execution time
+        if (path1.length === path2.length) {
+          if (stats1.executionTime < stats2.executionTime) {
+            winner = 'agent1';
+          } else if (stats2.executionTime < stats1.executionTime) {
+            winner = 'agent2';
+          }
+        }
+      } else if (path1.length > 0) {
+        winner = 'agent1';
+      } else if (path2.length > 0) {
+        winner = 'agent2';
+      }
+
+      const raceStats: RaceStats = {
+        agent1: stats1,
+        agent2: stats2,
+        winner,
+      };
 
       // Track which nodes have been visited by which agent
       const visitedByAgent1 = new Set<string>();
@@ -721,6 +806,14 @@ export const useVisualization = (): UseVisualizationReturn => {
                   if (j === maxPathLen - 1) {
                     isAnimating.current = false;
                     setIsVisualizing(false);
+                    
+                    // Update stats and scroll to statistics section
+                    if (statsCallbacks) {
+                      statsCallbacks.setVisualizationStats(raceStats);
+                      setTimeout(() => {
+                        statsCallbacks.scrollToStats();
+                      }, 500);
+                    }
                   }
                 }, j * (speed * 3));
 
@@ -731,6 +824,14 @@ export const useVisualization = (): UseVisualizationReturn => {
               if (maxPathLen === 0) {
                 isAnimating.current = false;
                 setIsVisualizing(false);
+                
+                // Update stats and scroll even if no paths found
+                if (statsCallbacks) {
+                  statsCallbacks.setVisualizationStats(raceStats);
+                  setTimeout(() => {
+                    statsCallbacks.scrollToStats();
+                  }, 500);
+                }
               }
             }, 50);
 
@@ -745,6 +846,14 @@ export const useVisualization = (): UseVisualizationReturn => {
       if (maxVisitedLen === 0) {
         isAnimating.current = false;
         setIsVisualizing(false);
+        
+        // Update stats and scroll even if nothing was visited
+        if (statsCallbacks) {
+          statsCallbacks.setVisualizationStats(raceStats);
+          setTimeout(() => {
+            statsCallbacks.scrollToStats();
+          }, 500);
+        }
       }
     },
     [clearAllTimeouts, clearVisualizationClasses, runAlgorithm]

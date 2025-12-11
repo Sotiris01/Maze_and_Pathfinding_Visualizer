@@ -45,8 +45,20 @@
 - [x] Different colors for each agent
 
 ### Phase E: Polish & Deployment 🔄 IN PROGRESS
-- [ ] Statistics Modal (execution time, visited nodes, path length)
-- [ ] Legend component explaining node colors
+- [x] Statistics Modal (execution time, visited nodes, path length)
+- [x] Legend component explaining node colors
+- [x] Two-Page Scroll Layout (CSS Scroll Snap)
+- [x] Statistics Section (full-page dashboard)
+- [x] Auto-scroll to stats after visualization
+- [x] Sidebar Control Panel (fixed width, full height)
+- [x] Auto-Scaling Grid (dynamic node sizing with ResizeObserver)
+- [x] Invisible Scrollbar (sidebar scrollable but scrollbar hidden)
+- [x] **Accordion-Based Control Panel Redesign**
+  - Reusable Accordion component with smooth animations
+  - 3 collapsible sections: Pathfinding, Maze Generation, Grid Settings
+  - Professional dark theme with gradient accents
+  - Primary/Secondary/Ghost button styles
+  - Loading spinner for visualization state
 - [ ] Responsive adjustments
 - [ ] Performance optimization
 - [ ] Deployment
@@ -59,6 +71,7 @@
 
 **Grid System:**
 - Dynamic grid rendering (20×30 default)
+- **Auto-scaling nodes** (ResizeObserver calculates optimal size)
 - Wall drawing (click/drag)
 - Wall erasing (Ctrl/Cmd + click/drag)
 - Start/Finish node drag & drop
@@ -98,8 +111,8 @@
 
 ```
 src/
-├── App.tsx                              (101 lines) - Main application component
-├── App.module.css                       (82 lines) - App layout styles
+├── App.tsx                              (125 lines) - Main app with scroll snap layout
+├── App.module.css                       (165 lines) - Two-page scroll snap styles
 ├── main.tsx                             (14 lines) - React entry point
 ├── vite-env.d.ts                        (27 lines) - Vite type declarations
 ├── algorithms/
@@ -117,17 +130,32 @@ src/
 │   │   ├── Board.module.css             (39 lines) - Grid styles
 │   │   └── index.ts                     (2 lines) - Barrel export
 │   ├── Controls/
-│   │   ├── ControlPanel.tsx             (296 lines) - Sidebar control panel
-│   │   ├── ControlPanel.module.css      (374 lines) - Panel styles
+│   │   ├── Accordion.tsx                (87 lines) - Reusable collapsible section
+│   │   ├── Accordion.module.css         (115 lines) - Accordion animations/styles
+│   │   ├── ControlPanel.tsx             (310 lines) - Sidebar with accordion groups
+│   │   ├── ControlPanel.module.css      (375 lines) - Professional dark theme styles
+│   │   └── index.ts                     (1 line) - Barrel export
+│   ├── Legend/
+│   │   ├── Legend.tsx                   (59 lines) - Color legend component
+│   │   ├── Legend.module.css            (95 lines) - Legend styles
+│   │   └── index.ts                     (1 line) - Barrel export
+│   ├── Modals/
+│   │   └── StatsModal/
+│   │       ├── StatsModal.tsx           (134 lines) - Statistics modal (legacy)
+│   │       ├── StatsModal.module.css    (170 lines) - Modal styles
+│   │       └── index.ts                 (2 lines) - Barrel export
+│   ├── Statistics/
+│   │   ├── StatisticsSection.tsx        (175 lines) - Full-page stats dashboard
+│   │   ├── StatisticsSection.module.css (285 lines) - Dashboard styles
 │   │   └── index.ts                     (1 line) - Barrel export
 │   └── Node/
 │       ├── NodeComponent.tsx            (84 lines) - Grid cell component
 │       ├── Node.module.css              (242 lines) - Node styles + animations
 │       └── index.ts                     (2 lines) - Barrel export
 ├── context/
-│   └── GridContext.tsx                  (179 lines) - Global state management
+│   └── GridContext.tsx                  (210 lines) - Global state management
 ├── hooks/
-│   └── useVisualization.ts              (676 lines) - Animation system
+│   └── useVisualization.ts              (875 lines) - Animation system + auto-scroll
 ├── styles/
 │   └── variables.css                    (383 lines) - CSS variables + global animations
 ├── types/
@@ -137,7 +165,7 @@ src/
     └── pathUtils.ts                     (10 lines) - Path utilities (placeholder)
 ```
 
-**Total: 25 files, 3,718 lines of code**
+**Total: 34 files, ~4,700 lines of code**
 
 ---
 
@@ -145,15 +173,15 @@ src/
 
 | Category | Files | Lines of Code |
 |----------|-------|---------------|
-| App Core | 4 | 224 |
-| Components | 9 | 1,227 |
+| App Core | 4 | 331 |
+| Components | 18 | 2,148 |
 | Algorithms | 6 | 1,021 |
-| Context | 1 | 179 |
-| Hooks | 1 | 676 |
+| Context | 1 | 210 |
+| Hooks | 1 | 875 |
 | Styles | 1 | 383 |
 | Types | 1 | 64 |
 | Utils | 2 | 301 |
-| **Total** | **25** | **3,718** |
+| **Total** | **34** | **~4,700** |
 
 ---
 
@@ -166,7 +194,8 @@ src/
 | Language | TypeScript 5 | Type safety |
 | State | React Context | Global grid state |
 | Performance | React.memo | Prevents mass re-renders |
-| Layout | CSS Grid | Dynamic grid layout |
+| Layout | CSS Scroll Snap | Two-page vertical scroll |
+| Grid | CSS Grid | Dynamic grid layout |
 | Animation | Direct DOM | getElementById for 1000+ nodes |
 | Styling | CSS Modules | Scoped + global classes |
 

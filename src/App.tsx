@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { GridProvider, useGridContext } from './context/GridContext';
 import Board from './components/Board';
 import { ControlPanel } from './components/Controls';
+import { StatisticsSection } from './components/Statistics';
+import { Legend } from './components/Legend';
 import { useVisualization } from './hooks/useVisualization';
 import { MazeType } from './types';
 import styles from './App.module.css';
 
 /**
- * MainContent Component - Contains Board and ControlPanel in 2-column layout
- * Separated to use context hooks inside GridProvider
+ * MainContent Component - Two-Page Scroll Layout
+ * Section 1: Visualizer (Board + Controls)
+ * Section 2: Statistics Dashboard
  */
 const MainContent: React.FC = () => {
   const { 
@@ -18,20 +21,37 @@ const MainContent: React.FC = () => {
     animationSpeed,
     selectedAlgorithm,
     secondAlgorithm,
-    clearAllWalls
+    isRaceMode,
+    clearAllWalls,
+    visualizationStats,
+    setVisualizationStats
   } = useGridContext();
   
   const { visualizePathfinding, visualizeRace, generateMaze, clearVisualization } = useVisualization();
+  
+  // Ref for the stats section to enable programmatic scrolling
+  const statsSectionRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to stats section
+  const scrollToStats = useCallback(() => {
+    statsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  // Stats callbacks for visualization hooks
+  const statsCallbacks = {
+    setVisualizationStats,
+    scrollToStats,
+  };
 
   // Handler for visualize button (single algorithm)
   const handleVisualize = (): void => {
-    visualizePathfinding(selectedAlgorithm, grid, setGrid, setIsVisualizing, animationSpeed);
+    visualizePathfinding(selectedAlgorithm, grid, setGrid, setIsVisualizing, animationSpeed, statsCallbacks);
   };
 
   // Handler for race mode visualization (two algorithms)
   const handleVisualizeRace = (): void => {
     if (secondAlgorithm) {
-      visualizeRace(selectedAlgorithm, secondAlgorithm, grid, setGrid, setIsVisualizing, animationSpeed);
+      visualizeRace(selectedAlgorithm, secondAlgorithm, grid, setGrid, setIsVisualizing, animationSpeed, statsCallbacks);
     }
   };
 
@@ -41,17 +61,10 @@ const MainContent: React.FC = () => {
   };
 
   // Handler for generate maze button
-  // Strict sequence: 1. Clear path (same as Clear Path button), 2. Clear walls, 3. Generate maze
   const handleGenerateMaze = (mazeType: MazeType): void => {
-    // Step 1: Clear any existing path/visited visualization 
-    // This is the SAME as clicking "Clear Path" button
     handleClearPath();
-    
-    // Step 2: Clear all existing walls (React state)
     clearAllWalls();
     
-    // Step 3: Generate the maze after React has re-rendered with cleared state
-    // Use requestAnimationFrame to ensure DOM is updated, then setTimeout for safety
     requestAnimationFrame(() => {
       setTimeout(() => {
         generateMaze(mazeType, grid, setGrid, setIsVisualizing, Math.max(15, animationSpeed / 2));
@@ -60,51 +73,68 @@ const MainContent: React.FC = () => {
   };
 
   return (
-    <div className={styles.mainContent}>
-      {/* Left Side - Board */}
-      <main className={styles.boardContainer}>
-        <Board />
-      </main>
+    <div className={styles.snapContainer}>
+      {/* Section 1: Visualizer */}
+      <div className={`${styles.snapSection} ${styles.visualizerSection}`}>
+        {/* Control Panel Sidebar - Fixed width, full height */}
+        <aside className={styles.controlPanelSidebar}>
+          <ControlPanel
+            onVisualize={handleVisualize}
+            onClearPath={handleClearPath}
+            onGenerateMaze={handleGenerateMaze}
+            onVisualizeRace={handleVisualizeRace}
+          />
+        </aside>
 
-      {/* Right Side - Control Panel */}
-      <ControlPanel
-        onVisualize={handleVisualize}
-        onClearPath={handleClearPath}
-        onGenerateMaze={handleGenerateMaze}
-        onVisualizeRace={handleVisualizeRace}
-      />
+        {/* Game Area - Takes remaining space */}
+        <div className={styles.gameArea}>
+          {/* Header - Fixed height */}
+          <header className={styles.header}>
+            <h1 className={styles.title}>Maze & Pathfinding Visualizer</h1>
+            <p className={styles.subtitle}>
+              Visualize pathfinding algorithms on an interactive grid
+            </p>
+          </header>
+
+          {/* Board Container - Takes all remaining vertical space */}
+          <div className={styles.boardContainer}>
+            <Board />
+          </div>
+
+          {/* Legend - Fixed height */}
+          <div className={styles.legendArea}>
+            <Legend orientation="horizontal" compact />
+          </div>
+
+          {/* Scroll Indicator - Fixed height */}
+          <footer className={styles.footer}>
+            <div className={styles.scrollIndicator} onClick={scrollToStats}>
+              <span>View Statistics</span>
+              <span>↓</span>
+            </div>
+          </footer>
+        </div>
+      </div>
+
+      {/* Section 2: Statistics */}
+      <div className={styles.snapSection} ref={statsSectionRef}>
+        <StatisticsSection 
+          stats={visualizationStats} 
+          isRaceMode={isRaceMode} 
+        />
+      </div>
     </div>
   );
 };
 
 /**
  * Main Application Component
- * 
  * Wraps the entire app with GridProvider for global state management.
- * Uses a 2-column layout: Board (left) + ControlPanel (right).
  */
 const App: React.FC = () => {
   return (
     <GridProvider>
-      <div className={styles.app}>
-        {/* Header */}
-        <header className={styles.header}>
-          <h1 className={styles.title}>Maze & Pathfinding Visualizer</h1>
-          <p className={styles.subtitle}>
-            Visualize pathfinding algorithms on an interactive grid
-          </p>
-        </header>
-
-        {/* Main Content: Board + ControlPanel */}
-        <MainContent />
-
-        {/* Footer */}
-        <footer className={styles.footer}>
-          <p>
-            Built with React + TypeScript • Phase D: Advanced Features
-          </p>
-        </footer>
-      </div>
+      <MainContent />
     </GridProvider>
   );
 };

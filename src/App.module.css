@@ -1,98 +1,206 @@
 /* ===========================================
    App Component Styles
-   2-Column Layout: Board (Left) + Control Panel (Right)
+   Two-Page Scroll Layout with CSS Scroll Snap
    =========================================== */
 
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Scroll Snap Container */
+.snapContainer {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
 }
 
-/* Header */
+/* Hide scrollbar but keep functionality */
+.snapContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.snapContainer {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Each Section */
+.snapSection {
+  height: 100vh;
+  width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+}
+
+/* ===========================================
+   Section 1: Visualizer - Flexbox Row Layout
+   =========================================== */
+
+.visualizerSection {
+  display: flex;
+  flex-direction: row;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Control Panel Sidebar - Fixed width, full height */
+.controlPanelSidebar {
+  width: 320px;
+  height: 100%;
+  flex-shrink: 0;
+  overflow: hidden; /* Let inner panel handle scrolling */
+}
+
+/* Game Area - Takes remaining space */
+.gameArea {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Header - Fixed height */
 .header {
   text-align: center;
-  padding: 15px 20px;
+  padding: 10px 20px;
   color: white;
   flex-shrink: 0;
 }
 
 .title {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 700;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .subtitle {
-  margin: 8px 0 0;
-  font-size: 1rem;
+  margin: 4px 0 0;
+  font-size: 0.9rem;
   opacity: 0.9;
 }
 
-/* ===========================================
-   Main Content - 2 Column Layout
-   =========================================== */
-
-.mainContent {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  overflow: hidden;
-}
-
-/* Board Container - Takes remaining space */
+/* Board Container - Takes all remaining vertical space */
 .boardContainer {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 15px;
-  overflow: auto;
+  overflow: hidden;
+  min-height: 0;
+  padding: 10px;
 }
 
-/* ===========================================
-   Footer
-   =========================================== */
+/* Legend Area - Fixed height at bottom */
+.legendArea {
+  flex-shrink: 0;
+  padding: 8px 15px;
+  display: flex;
+  justify-content: center;
+}
 
+/* Footer / Scroll Indicator - Fixed height */
 .footer {
   text-align: center;
-  padding: 10px 15px;
+  padding: 6px 15px;
   color: white;
-  opacity: 0.7;
-  font-size: 0.85rem;
   flex-shrink: 0;
 }
 
-.footer p {
-  margin: 0;
+.scrollIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.scrollIndicator:hover {
+  opacity: 1;
+}
+
+.scrollIndicator span:first-child {
+  font-size: 0.8rem;
+}
+
+.scrollIndicator span:last-child {
+  font-size: 1rem;
+  animation: bounceDown 2s infinite;
+}
+
+@keyframes bounceDown {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(5px);
+  }
+  60% {
+    transform: translateY(3px);
+  }
 }
 
 /* ===========================================
    Responsive Design
    =========================================== */
 
-@media (max-width: 900px) {
-  .mainContent {
+@media (max-width: 1000px) {
+  .visualizerSection {
     flex-direction: column;
   }
 
-  .boardContainer {
+  .controlPanelSidebar {
+    width: 100%;
+    height: auto;
+    max-height: 40vh;
+    order: 2;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .gameArea {
     order: 1;
-    padding: 10px;
+    flex: 1;
+    min-height: 0;
   }
 
   .header {
-    padding: 10px 15px;
+    padding: 8px 15px;
   }
 
   .title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .subtitle {
-    font-size: 0.9rem;
+    display: none;
+  }
+
+  .footer {
+    display: none;
   }
 }
+
+@media (max-height: 700px) {
+  .header {
+    padding: 5px 15px;
+  }
+  
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .footer {
+    padding: 4px 10px;
+  }
+
+  .legendArea {
+    padding: 5px 10px;
+  }
+}
+
