@@ -1,11 +1,11 @@
-import React, { memo } from 'react';
-import styles from './Node.module.css';
+import React, { memo } from "react";
+import styles from "./Node.module.css";
 
 /**
  * Props for the NodeComponent
  * Extends Node properties with event handlers
  */
-interface NodeComponentProps {
+export interface NodeComponentProps {
   row: number;
   col: number;
   isStart: boolean;
@@ -16,11 +16,12 @@ interface NodeComponentProps {
   onMouseDown: (row: number, col: number, event: React.MouseEvent) => void;
   onMouseEnter: (row: number, col: number) => void;
   onMouseUp: () => void;
+  onTouchStart?: (row: number, col: number, event: React.TouchEvent) => void;
 }
 
 /**
  * NodeComponent - Represents a single cell in the grid
- * 
+ *
  * Wrapped in React.memo to prevent unnecessary re-renders
  * of all 1500 nodes during visualization updates.
  * Only re-renders when its own props change.
@@ -37,6 +38,7 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
     onMouseDown,
     onMouseEnter,
     onMouseUp,
+    onTouchStart,
   }) => {
     /**
      * Compute the dynamic class name based on node state
@@ -46,30 +48,37 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
       const classNames = [styles.node];
 
       if (isStart) {
-        classNames.push(styles['node-start']);
+        classNames.push(styles["node-start"]);
       } else if (isFinish) {
-        classNames.push(styles['node-finish']);
+        classNames.push(styles["node-finish"]);
       } else if (isPath) {
-        classNames.push(styles['node-path']);
+        classNames.push(styles["node-path"]);
       } else if (isWall) {
-        classNames.push(styles['node-wall']);
+        classNames.push(styles["node-wall"]);
       } else if (isVisited) {
-        classNames.push(styles['node-visited']);
+        classNames.push(styles["node-visited"]);
       }
 
-      return classNames.join(' ');
+      return classNames.join(" ");
     };
 
     return (
       <div
         id={`node-${row}-${col}`}
         className={getNodeClassName()}
+        data-row={row}
+        data-col={col}
         onMouseDown={(e) => onMouseDown(row, col, e)}
         onMouseEnter={() => onMouseEnter(row, col)}
         onMouseUp={onMouseUp}
+        onTouchStart={
+          onTouchStart ? (e) => onTouchStart(row, col, e) : undefined
+        }
         role="button"
         tabIndex={-1}
-        aria-label={`Node at row ${row}, column ${col}${isStart ? ' (Start)' : ''}${isFinish ? ' (Finish)' : ''}${isWall ? ' (Wall)' : ''}`}
+        aria-label={`Node at row ${row}, column ${col}${
+          isStart ? " (Start)" : ""
+        }${isFinish ? " (Finish)" : ""}${isWall ? " (Wall)" : ""}`}
       />
     );
   },
@@ -87,6 +96,6 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
   }
 );
 
-NodeComponent.displayName = 'NodeComponent';
+NodeComponent.displayName = "NodeComponent";
 
 export default NodeComponent;

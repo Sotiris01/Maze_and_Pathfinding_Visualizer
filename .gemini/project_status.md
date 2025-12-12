@@ -2,16 +2,16 @@
 
 ## Project Overview
 
-| Field             | Value                                                          |
-| ----------------- | -------------------------------------------------------------- |
-| **Project Name**  | Maze & Pathfinding Visualizer                                  |
-| **Type**          | Web Application (SPA)                                          |
-| **Tech Stack**    | React 18, TypeScript 5, Vite 5, CSS Modules                    |
-| **Current Phase** | Phase E: Polish & Deployment (In Progress)                     |
-| **Progress**      | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D ✅ → Phase E 🔄 |
-| **Server**        | ✅ Running at http://localhost:3000/                           |
-| **Default Grid**  | 20 rows × 30 columns (600 nodes)                               |
-| **Repository**    | https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer   |
+| Field             | Value                                                                   |
+| ----------------- | ----------------------------------------------------------------------- |
+| **Project Name**  | Maze & Pathfinding Visualizer                                           |
+| **Type**          | Web Application (SPA)                                                   |
+| **Tech Stack**    | React 18, TypeScript 5, Vite 5, CSS Modules                             |
+| **Current Phase** | **COMPLETE** ✅                                                         |
+| **Progress**      | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D ✅ → Phase E ✅          |
+| **Server**        | ✅ Live at https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/ |
+| **Default Grid**  | 20 rows × 30 columns (600 nodes)                                        |
+| **Repository**    | https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer            |
 
 ---
 
@@ -48,7 +48,7 @@
 - [x] Race Mode (dual agent comparison)
 - [x] Different colors for each agent
 
-### Phase E: Polish & Deployment 🔄 IN PROGRESS
+### Phase E: Polish & Deployment ✅ COMPLETE
 
 - [x] Statistics Modal (execution time, visited nodes, path length)
 - [x] Legend component explaining node colors
@@ -78,9 +78,29 @@
   - Slim 8px progress bars with labels above
   - System Monitor / Stock Ticker density approach
   - Responsive breakpoints: 3→2→1 columns
-- [ ] Responsive adjustments
-- [ ] Performance optimization
-- [ ] Deployment
+- [x] **Toast Notification System**
+  - Slide-up toast for unreachable target detection
+  - Auto-dismiss after 3 seconds with fade-out animation
+  - Error/warning/success styling variants
+  - Statistics display "Unreachable" with red indicator
+- [x] **Responsive Mobile Layout**
+  - Mobile (≤768px): Hamburger menu with slide-over drawer
+  - Tablet (769-1000px): Stacked layout with collapsible panel
+  - Desktop (>768px): Side-by-side fixed sidebar layout
+  - Touch support for wall drawing and node dragging
+  - Adaptive statistics with single-column mobile layout
+- [x] **Performance Optimization**
+  - React.memo with custom `arePropsEqual` on NodeComponent (skips function refs)
+  - useCallback with refs in Board.tsx to avoid stale closures
+  - React.lazy() + Suspense for StatisticsSection (below-fold lazy loading)
+  - Vite manual chunk splitting: vendor-react (141KB), algorithms (5KB), statistics (11KB)
+  - esbuild minification with console/debugger removal
+  - Cache-friendly file naming with content hashes
+- [x] **Deployment to GitHub Pages**
+  - Configured `base` URL in vite.config.ts for correct asset paths
+  - Added `gh-pages` package for automated deployment
+  - `npm run deploy` pushes dist folder to gh-pages branch
+  - Live at: https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/
 
 ---
 
@@ -124,6 +144,8 @@
 - Grid size sliders
 - Visualize/Race buttons
 - Clear Path, Reset Board, Clear Walls buttons
+- Mobile hamburger menu with slide-over drawer
+- Toast notifications for edge cases
 
 ### ⚠️ Known Limitations
 
@@ -135,10 +157,11 @@
 
 ```
 src/
-├── App.tsx                              (125 lines) - Main app with scroll snap layout
-├── App.module.css                       (165 lines) - Two-page scroll snap styles
+├── App.tsx                              (220 lines) - Main app with lazy loading + Suspense
+├── App.module.css                       (350 lines) - Responsive layout + stats loading fallback
 ├── main.tsx                             (14 lines) - React entry point
 ├── vite-env.d.ts                        (27 lines) - Vite type declarations
+vite.config.ts                           (60 lines) - Build config with manual chunk splitting
 ├── algorithms/
 │   ├── maze/
 │   │   ├── randomizedDFS.ts             (186 lines) - Randomized DFS maze
@@ -150,7 +173,7 @@ src/
 │       └── dijkstra.ts                  (145 lines) - Dijkstra's algorithm
 ├── components/
 │   ├── Board/
-│   │   ├── Board.tsx                    (187 lines) - Grid renderer
+│   │   ├── Board.tsx                    (282 lines) - Grid renderer with touch support
 │   │   ├── Board.module.css             (39 lines) - Grid styles
 │   │   └── index.ts                     (2 lines) - Barrel export
 │   ├── Controls/
@@ -169,17 +192,20 @@ src/
 │   │       ├── StatsModal.module.css    (170 lines) - Modal styles
 │   │       └── index.ts                 (2 lines) - Barrel export
 │   ├── Statistics/
-│   │   ├── StatBar.tsx                  (170 lines) - Compact animated comparison bars
-│   │   ├── StatBar.module.css           (130 lines) - Slim progress bars with meta labels
-│   │   ├── StatisticsSection.tsx        (260 lines) - High-Density Analytics Dashboard
-│   │   ├── StatisticsSection.module.css (340 lines) - Compact 3-column grid layout
+│   │   ├── StatBar.tsx                  (265 lines) - Comparison bars with tie/unreachable states
+│   │   ├── StatBar.module.css           (185 lines) - Progress bars + error/tie styling
+│   │   ├── StatisticsSection.tsx        (325 lines) - Analytics Dashboard with failure handling
+│   │   ├── StatisticsSection.module.css (495 lines) - Responsive 3→1 column layout
 │   │   └── index.ts                     (1 line) - Barrel export
-│   └── Node/
-│       ├── NodeComponent.tsx            (84 lines) - Grid cell component
-│       ├── Node.module.css              (242 lines) - Node styles + animations
-│       └── index.ts                     (2 lines) - Barrel export
+│   ├── Node/
+│   │   ├── NodeComponent.tsx            (92 lines) - Grid cell with touch support
+│   │   ├── Node.module.css              (242 lines) - Node styles + animations
+│   │   └── index.ts                     (2 lines) - Barrel export
+│   └── UI/
+│       ├── Toast.tsx                    (78 lines) - Toast notification component
+│       └── Toast.module.css             (82 lines) - Slide-up animation styles
 ├── context/
-│   └── GridContext.tsx                  (210 lines) - Global state management
+│   └── GridContext.tsx                  (250 lines) - Global state + toast management
 ├── hooks/
 │   └── useVisualization.ts              (875 lines) - Animation system + auto-scroll
 ├── styles/
@@ -191,7 +217,7 @@ src/
     └── pathUtils.ts                     (10 lines) - Path utilities (placeholder)
 ```
 
-**Total: 36 files, ~5,000 lines of code**
+**Total: 39 files, ~5,700 lines of code**
 
 ---
 
@@ -199,31 +225,35 @@ src/
 
 | Category   | Files  | Lines of Code |
 | ---------- | ------ | ------------- |
-| App Core   | 4      | 331           |
-| Components | 20     | 2,470         |
+| App Core   | 4      | 450           |
+| Config     | 1      | 60            |
+| Components | 22     | 2,850         |
 | Algorithms | 6      | 1,021         |
-| Context    | 1      | 210           |
-| Hooks      | 1      | 875           |
+| Context    | 1      | 250           |
+| Hooks      | 1      | 905           |
 | Styles     | 1      | 383           |
 | Types      | 1      | 64            |
 | Utils      | 2      | 301           |
-| **Total**  | **36** | **~5,000**    |
+| **Total**  | **39** | **~5,700**    |
 
 ---
 
 ## Technical Architecture
 
-| Component   | Technology      | Purpose                        |
-| ----------- | --------------- | ------------------------------ |
-| Build Tool  | Vite 5          | Fast HMR, ESM support          |
-| UI Library  | React 18        | Component-based UI             |
-| Language    | TypeScript 5    | Type safety                    |
-| State       | React Context   | Global grid state              |
-| Performance | React.memo      | Prevents mass re-renders       |
-| Layout      | CSS Scroll Snap | Two-page vertical scroll       |
-| Grid        | CSS Grid        | Dynamic grid layout            |
-| Animation   | Direct DOM      | getElementById for 1000+ nodes |
-| Styling     | CSS Modules     | Scoped + global classes        |
+| Component   | Technology      | Purpose                            |
+| ----------- | --------------- | ---------------------------------- |
+| Build Tool  | Vite 5          | Fast HMR, ESM support              |
+| UI Library  | React 18        | Component-based UI                 |
+| Language    | TypeScript 5    | Type safety                        |
+| State       | React Context   | Global grid state                  |
+| Performance | React.memo      | Custom comparison, skips fn refs   |
+| Code Split  | React.lazy      | Lazy load StatisticsSection        |
+| Bundling    | Rollup chunks   | vendor-react/algorithms/statistics |
+| Layout      | CSS Scroll Snap | Two-page vertical scroll           |
+| Grid        | CSS Grid        | Dynamic grid layout                |
+| Responsive  | CSS Media Query | Mobile drawer + adaptive grids     |
+| Animation   | Direct DOM      | getElementById for 1000+ nodes     |
+| Styling     | CSS Modules     | Scoped + global classes            |
 
 ---
 
@@ -270,4 +300,4 @@ src/
 
 ---
 
-**Last Updated:** December 10, 2025
+**Last Updated:** December 12, 2025

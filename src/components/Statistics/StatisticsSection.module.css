@@ -451,33 +451,91 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .section {
-    padding: 16px;
+    padding: 16px 12px;
+    overflow-y: auto; /* Allow scrolling on mobile */
+  }
+  .container {
+    gap: 12px;
+  }
+  .header {
+    padding: 0;
+  }
+  .headerBadge {
+    font-size: 0.6rem;
+    padding: 3px 10px;
   }
   .title {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
   }
   .statsGrid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
   .efficiencyCard {
     grid-column: span 1;
   }
   .comparisonSection {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
   .verdictBanner {
     grid-column: span 1;
+    padding: 10px 16px;
   }
-  .verdictContent {
-    flex-direction: column;
-    gap: 4px;
+  .verdictTitle {
+    font-size: 1rem;
+  }
+  .verdictSubtitle {
+    font-size: 0.75rem;
   }
   .algorithmBanner {
     flex-direction: column;
     text-align: center;
     padding: 12px;
+    gap: 8px;
+  }
+  .algorithmName {
+    font-size: 1.1rem;
+  }
+  .statCard {
+    padding: 10px 12px;
+  }
+  .cardIcon {
+    font-size: 1.2rem;
+  }
+  .cardLabel {
+    font-size: 0.65rem;
+  }
+  .cardValue {
+    font-size: 1.1rem;
+  }
+  .emptyState {
+    padding: 16px;
+    gap: 12px;
+  }
+  .emptyTitle {
+    font-size: 1.2rem;
+  }
+  .emptyText {
+    font-size: 0.85rem;
+  }
+  .scrollHint {
+    padding-top: 4px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 12px 10px;
+  }
+  .title {
+    font-size: 1rem;
+  }
+  .cardValue {
+    font-size: 1rem;
   }
   .tableHeader,
   .tableRow {

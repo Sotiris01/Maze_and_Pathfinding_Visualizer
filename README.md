@@ -19,6 +19,12 @@ An interactive web application that visualizes pathfinding and maze generation a
 
 ---
 
+## 🚀 Live Demo
+
+**👉 [Try it live on GitHub Pages!](https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/)**
+
+---
+
 ## ✨ Features
 
 ### 🤖 Pathfinding Algorithms
@@ -77,11 +83,29 @@ After each visualization, view detailed metrics:
 - **Auto-scaling Grid** - Dynamic node sizing with ResizeObserver
 - **Dark Theme** - Professional glassmorphism design
 
+### 📱 Responsive Design
+
+- **Desktop (>768px)** - Side-by-side layout with fixed sidebar
+- **Tablet (769-1000px)** - Stacked layout with collapsible control panel
+- **Mobile (≤768px)** - Hamburger menu with slide-over drawer
+- **Touch Support** - Draw walls and drag nodes on touchscreens
+- **Adaptive Statistics** - Single-column layout on smaller screens
+
+### ⚡ Performance Optimizations
+
+- **React.memo** with custom comparator prevents unnecessary re-renders
+- **React.lazy() + Suspense** for code-split lazy loading
+- **Vite manual chunk splitting** - vendor-react (141KB), algorithms (5KB), statistics (11KB)
+- **esbuild minification** with console/debugger removal in production
+- **Direct DOM manipulation** for animations bypasses React's reconciliation
+- **useRef** for animation state prevents stale closures
+- **ResizeObserver** for dynamic, responsive node sizing
+
 ---
 
 ## 🚀 Live Demo
 
-> **Coming Soon** - Deployment to Vercel/Netlify
+**👉 [Try it live on GitHub Pages!](https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/)**
 
 ---
 
@@ -93,14 +117,17 @@ _Screenshots coming soon_
 
 ## 🛠️ Tech Stack
 
-| Technology        | Purpose                                   |
-| ----------------- | ----------------------------------------- |
-| **React 18**      | Component-based UI with hooks             |
-| **TypeScript 5**  | Type safety and better DX                 |
-| **Vite 5**        | Lightning-fast HMR and builds             |
-| **CSS Modules**   | Scoped styling with CSS Grid              |
-| **React Context** | Global state management                   |
-| **Direct DOM**    | High-performance animations (1000+ nodes) |
+| Technology          | Purpose                                   |
+| ------------------- | ----------------------------------------- |
+| **React 18**        | Component-based UI with hooks             |
+| **TypeScript 5**    | Type safety and better DX                 |
+| **Vite 5**          | Lightning-fast HMR and builds             |
+| **CSS Modules**     | Scoped styling with CSS Grid              |
+| **React Context**   | Global state management                   |
+| **React.lazy**      | Code splitting for lazy-loaded components |
+| **CSS Scroll Snap** | Smooth two-page vertical navigation       |
+| **gh-pages**        | Automated deployment to GitHub Pages      |
+| **Direct DOM**      | High-performance animations (1000+ nodes) |
 
 ---
 
@@ -130,8 +157,11 @@ The app will be available at `http://localhost:3000`
 # Build the project
 npm run build
 
-# Preview production build
+# Preview production build locally
 npm run preview
+
+# Deploy to GitHub Pages
+npm run deploy
 ```
 
 ---
@@ -150,26 +180,30 @@ src/
 │       ├── recursiveDivision.ts # Recursive Division maze
 │       └── randomizedDFS.ts     # Randomized DFS (Backtracker)
 ├── components/
-│   ├── Board/                   # Grid renderer with CSS Grid
-│   ├── Node/                    # Individual cell component
+│   ├── Board/                   # Grid renderer with CSS Grid + touch support
+│   ├── Node/                    # Individual cell with React.memo optimization
 │   ├── Controls/                # Accordion-based sidebar
 │   │   ├── Accordion.tsx        # Reusable collapsible section
-│   │   └── ControlPanel.tsx     # Main control panel
+│   │   └── ControlPanel.tsx     # Main control panel (3 sections)
 │   ├── Legend/                  # Color legend component
-│   └── Statistics/              # Full-page stats dashboard
+│   ├── Statistics/              # Full-page analytics dashboard
+│   │   ├── StatBar.tsx          # Animated comparison progress bars
+│   │   └── StatisticsSection.tsx # Metrics grid with IntersectionObserver
+│   └── UI/
+│       └── Toast.tsx            # Slide-up notification component
 ├── context/
-│   └── GridContext.tsx          # Global state management
+│   └── GridContext.tsx          # Global state + toast management
 ├── hooks/
 │   └── useVisualization.ts      # Animation system + auto-scroll
 ├── types/
 │   └── index.ts                 # TypeScript interfaces
 ├── styles/
-│   └── variables.css            # CSS variables + animations
+│   └── variables.css            # CSS variables + global animations
 └── utils/
     └── gridUtils.ts             # Grid helper functions
 ```
 
-**📊 Codebase Stats:** ~4,700 lines of code across 34 files
+**📊 Codebase Stats:** ~5,700 lines of code across 39 files
 
 ---
 
@@ -242,9 +276,15 @@ Space Complexity: O(V)
 
 ## 🔧 Performance Optimizations
 
-- **React.memo** with custom comparator prevents unnecessary re-renders
+- **React.memo** with custom `arePropsEqual` comparator skips function reference checks
+- **React.lazy() + Suspense** for below-fold StatisticsSection lazy loading
+- **Vite manual chunk splitting:**
+  - `vendor-react` (141KB gzip: 45KB) - React core, cached separately
+  - `algorithms` (5KB gzip: 1.7KB) - Pathfinding algorithms
+  - `statistics` (11KB gzip: 3.4KB) - Lazy-loaded dashboard
+- **esbuild minification** with automatic console/debugger removal
 - **Direct DOM manipulation** for animations bypasses React's reconciliation
-- **useRef** for animation state prevents stale closures
+- **useRef** for animation state prevents stale closures in callbacks
 - **CSS Grid** for efficient grid layout rendering
 - **ResizeObserver** for dynamic, responsive node sizing
 - **CSS Scroll Snap** for smooth two-page navigation
@@ -257,8 +297,8 @@ Space Complexity: O(V)
 - [x] **Phase B:** Dijkstra's algorithm with animation system
 - [x] **Phase C:** Maze generation (Recursive Division, Randomized DFS)
 - [x] **Phase D:** A\*, BFS, DFS algorithms + Race Mode
-- [x] **Phase E:** Statistics dashboard, Legend, Accordion UI
-- [ ] **Phase F:** Responsive design, PWA support, deployment
+- [x] **Phase E:** Statistics dashboard, Legend, Accordion UI, Toast notifications
+- [x] **Phase F:** Responsive mobile layout, Performance optimization, GitHub Pages deployment
 
 ---
 
@@ -299,4 +339,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <p align="center">
   <sub>⭐ Star this repo if you found it useful!</sub>
+</p>
+
+<p align="center">
+  <a href="https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/">
+    <img src="https://img.shields.io/badge/🧭_Try_Live_Demo-GitHub_Pages-blue?style=for-the-badge" alt="Live Demo" />
+  </a>
 </p>

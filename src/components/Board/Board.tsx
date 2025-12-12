@@ -148,6 +148,46 @@ const Board: React.FC = () => {
   );
 
   /**
+   * Handle touch start on a node - mobile equivalent of mousedown
+   * Starts wall drawing or Start/Finish dragging
+   */
+  const handleTouchStart = useCallback(
+    (row: number, col: number, event: React.TouchEvent): void => {
+      event.preventDefault(); // Prevent scrolling while drawing
+
+      if (isVisualizing) return;
+
+      const node = grid[row][col];
+      isMousePressedRef.current = true;
+      setIsMousePressed(true);
+      isEraserModeRef.current = false; // No eraser mode on touch
+
+      // Priority 1: Start node - begin dragging
+      if (node.isStart) {
+        isDraggingStartRef.current = true;
+        return;
+      }
+
+      // Priority 2: Finish node - begin dragging
+      if (node.isFinish) {
+        isDraggingFinishRef.current = true;
+        return;
+      }
+
+      // Priority 3: Wall drawing (toggle wall state)
+      setGrid((currentGrid) => {
+        const currentNode = currentGrid[row][col];
+        if (currentNode.isWall) {
+          return getNewGridWithWallRemoved(currentGrid, row, col);
+        } else {
+          return getNewGridWithWallSet(currentGrid, row, col);
+        }
+      });
+    },
+    [grid, setGrid, setIsMousePressed, isVisualizing]
+  );
+
+  /**
    * Handle mouse enter on a node - continues wall drawing/erasing or Start/Finish dragging
    * Maintains the mode (draw/erase/drag) that was set on mouse down
    */
@@ -183,6 +223,61 @@ const Board: React.FC = () => {
     },
     [setGrid, isVisualizing]
   );
+
+  /**
+   * Handle touch move - mobile equivalent of mouseenter
+   * Uses document.elementFromPoint to find which node is under the finger
+   */
+  const handleTouchMove = useCallback(
+    (event: React.TouchEvent): void => {
+      if (!isMousePressedRef.current || isVisualizing) return;
+
+      const touch = event.touches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+      if (!element) return;
+
+      // Find the node element (may be the element or a parent)
+      const nodeElement = element.closest("[data-row][data-col]");
+      if (!nodeElement) return;
+
+      const row = parseInt(nodeElement.getAttribute("data-row") || "-1", 10);
+      const col = parseInt(nodeElement.getAttribute("data-col") || "-1", 10);
+
+      if (row < 0 || col < 0 || row >= rowCount || col >= colCount) return;
+
+      // Handle Start node dragging
+      if (isDraggingStartRef.current) {
+        setGrid((currentGrid) =>
+          getNewGridWithStartMoved(currentGrid, row, col)
+        );
+        return;
+      }
+
+      // Handle Finish node dragging
+      if (isDraggingFinishRef.current) {
+        setGrid((currentGrid) =>
+          getNewGridWithFinishMoved(currentGrid, row, col)
+        );
+        return;
+      }
+
+      // Handle wall drawing (always add walls on touch move)
+      setGrid((currentGrid) => getNewGridWithWallSet(currentGrid, row, col));
+    },
+    [setGrid, isVisualizing, rowCount, colCount]
+  );
+
+  /**
+   * Handle touch end - mobile equivalent of mouseup
+   */
+  const handleTouchEnd = useCallback((): void => {
+    isMousePressedRef.current = false;
+    isEraserModeRef.current = false;
+    isDraggingStartRef.current = false;
+    isDraggingFinishRef.current = false;
+    setIsMousePressed(false);
+  }, [setIsMousePressed]);
 
   /**
    * Handle mouse up - stops all interactions (wall drawing/erasing, Start/Finish dragging)
@@ -249,6 +344,8 @@ const Board: React.FC = () => {
       onMouseLeave={handleMouseUp}
       onDragStart={handleDragStart}
       onContextMenu={handleContextMenu}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* eslint-disable-next-line react/forbid-dom-props */}
       <div
@@ -270,6 +367,7 @@ const Board: React.FC = () => {
               onMouseDown={handleMouseDown}
               onMouseEnter={handleMouseEnter}
               onMouseUp={handleMouseUp}
+              onTouchStart={handleTouchStart}
             />
           ))
         )}

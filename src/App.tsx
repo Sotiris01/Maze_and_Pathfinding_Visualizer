@@ -1,13 +1,18 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useState, lazy, Suspense } from "react";
 import { GridProvider, useGridContext } from "./context/GridContext";
 import Board from "./components/Board";
 import { ControlPanel } from "./components/Controls";
-import { StatisticsSection } from "./components/Statistics";
 import { Legend } from "./components/Legend";
 import Toast from "./components/UI/Toast";
 import { useVisualization } from "./hooks/useVisualization";
 import { MazeType } from "./types";
 import styles from "./App.module.css";
+
+// Lazy load the Statistics section to reduce initial bundle size
+// This component is below the fold and not needed for initial render
+const StatisticsSection = lazy(
+  () => import("./components/Statistics/StatisticsSection")
+);
 
 /**
  * MainContent Component - Two-Page Scroll Layout
@@ -38,6 +43,19 @@ const MainContent: React.FC = () => {
 
   // Ref for the stats section to enable programmatic scrolling
   const statsSectionRef = useRef<HTMLDivElement>(null);
+
+  // Mobile sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Toggle mobile sidebar
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen((prev) => !prev);
+  }, []);
+
+  // Close sidebar (for overlay click)
+  const closeSidebar = useCallback(() => {
+    setIsSidebarOpen(false);
+  }, []);
 
   // Scroll to stats section
   const scrollToStats = useCallback(() => {
@@ -105,8 +123,33 @@ const MainContent: React.FC = () => {
     <div className={styles.snapContainer}>
       {/* Section 1: Visualizer */}
       <div className={`${styles.snapSection} ${styles.visualizerSection}`}>
+        {/* Mobile Menu Toggle Button */}
+        <button
+          className={styles.mobileMenuToggle}
+          onClick={toggleSidebar}
+          aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isSidebarOpen}
+        >
+          <span className={styles.hamburgerIcon}>
+            {isSidebarOpen ? "✕" : "☰"}
+          </span>
+        </button>
+
+        {/* Mobile Overlay */}
+        {isSidebarOpen && (
+          <div
+            className={styles.sidebarOverlay}
+            onClick={closeSidebar}
+            aria-hidden="true"
+          />
+        )}
+
         {/* Control Panel Sidebar - Fixed width, full height */}
-        <aside className={styles.controlPanelSidebar}>
+        <aside
+          className={`${styles.controlPanelSidebar} ${
+            isSidebarOpen ? styles.sidebarOpen : ""
+          }`}
+        >
           <ControlPanel
             onVisualize={handleVisualize}
             onClearPath={handleClearPath}
@@ -147,7 +190,16 @@ const MainContent: React.FC = () => {
 
       {/* Section 2: Statistics */}
       <div className={styles.snapSection} ref={statsSectionRef}>
-        <StatisticsSection stats={visualizationStats} isRaceMode={isRaceMode} />
+        <Suspense
+          fallback={
+            <div className={styles.statsLoading}>Loading Statistics...</div>
+          }
+        >
+          <StatisticsSection
+            stats={visualizationStats}
+            isRaceMode={isRaceMode}
+          />
+        </Suspense>
       </div>
     </div>
   );
