@@ -14,11 +14,138 @@
  * - Typically 10-100x faster than A* in open spaces
  * - Falls back to A*-like behavior in dense obstacle environments
  *
+ * Time Complexity: O((V + E) log V) with min-heap
+ * Space Complexity: O(V)
+ *
  * Note: This implementation is for 4-directional movement (cardinal only).
  * For 8-directional (with diagonals), the forced neighbor rules differ.
  */
 
 import { Grid, Node } from "../../types";
+
+// ============================================================================
+// Min-Heap Priority Queue Implementation
+// ============================================================================
+
+interface JumpPointEntry {
+  row: number;
+  col: number;
+  dirRow: number;
+  dirCol: number;
+  fScore: number;
+}
+
+/**
+ * Binary Min-Heap for efficient priority queue operations.
+ */
+class MinHeap {
+  private heap: JumpPointEntry[] = [];
+  private positionMap: Map<string, number> = new Map();
+
+  private getKey(entry: JumpPointEntry): string {
+    return `${entry.row}-${entry.col}`;
+  }
+
+  get size(): number {
+    return this.heap.length;
+  }
+
+  isEmpty(): boolean {
+    return this.heap.length === 0;
+  }
+
+  insert(entry: JumpPointEntry): void {
+    const key = this.getKey(entry);
+    if (this.positionMap.has(key)) {
+      const idx = this.positionMap.get(key)!;
+      if (entry.fScore < this.heap[idx].fScore) {
+        this.heap[idx] = entry;
+        this.bubbleUp(idx);
+        this.bubbleDown(idx);
+      }
+    } else {
+      this.heap.push(entry);
+      const idx = this.heap.length - 1;
+      this.positionMap.set(key, idx);
+      this.bubbleUp(idx);
+    }
+  }
+
+  extractMin(): JumpPointEntry | undefined {
+    if (this.heap.length === 0) return undefined;
+    if (this.heap.length === 1) {
+      const entry = this.heap.pop()!;
+      this.positionMap.delete(this.getKey(entry));
+      return entry;
+    }
+
+    const min = this.heap[0];
+    const last = this.heap.pop()!;
+    this.positionMap.delete(this.getKey(min));
+
+    if (this.heap.length > 0) {
+      this.heap[0] = last;
+      this.positionMap.set(this.getKey(last), 0);
+      this.bubbleDown(0);
+    }
+
+    return min;
+  }
+
+  has(key: string): boolean {
+    return this.positionMap.has(key);
+  }
+
+  private bubbleUp(idx: number): void {
+    while (idx > 0) {
+      const parentIdx = Math.floor((idx - 1) / 2);
+      if (this.heap[idx].fScore >= this.heap[parentIdx].fScore) {
+        break;
+      }
+      this.swap(idx, parentIdx);
+      idx = parentIdx;
+    }
+  }
+
+  private bubbleDown(idx: number): void {
+    const length = this.heap.length;
+    while (true) {
+      const leftIdx = 2 * idx + 1;
+      const rightIdx = 2 * idx + 2;
+      let smallest = idx;
+
+      if (
+        leftIdx < length &&
+        this.heap[leftIdx].fScore < this.heap[smallest].fScore
+      ) {
+        smallest = leftIdx;
+      }
+      if (
+        rightIdx < length &&
+        this.heap[rightIdx].fScore < this.heap[smallest].fScore
+      ) {
+        smallest = rightIdx;
+      }
+
+      if (smallest === idx) break;
+
+      this.swap(idx, smallest);
+      idx = smallest;
+    }
+  }
+
+  private swap(i: number, j: number): void {
+    const keyI = this.getKey(this.heap[i]);
+    const keyJ = this.getKey(this.heap[j]);
+    [this.heap[i], this.heap[j]] = [this.heap[j], this.heap[i]];
+    this.positionMap.set(keyI, j);
+    this.positionMap.set(keyJ, i);
+  }
+}
+
+// ============================================================================
+// Jump Point Search Algorithm
+// ============================================================================
 
 /**
  * Manhattan Distance Heuristic
@@ -64,104 +191,79 @@ export function jumpPointSearch(
     return !grid[row][col].isWall;
   };
 
-  // Use Maps to track scores
+  // Use Maps to track scores (lazy initialization)
   const gScore = new Map<string, number>();
-  const fScore = new Map<string, number>();
   const cameFrom = new Map<string, string | null>();
-  const inOpenSet = new Map<string, boolean>();
-
-  // Initialize all with Infinity
-  for (const row of grid) {
-    for (const node of row) {
-      const key = getKey(node.row, node.col);
-      gScore.set(key, Infinity);
-      fScore.set(key, Infinity);
-    }
-  }
 
   // Initialize start node
   const startKey = getKey(startNode.row, startNode.col);
   gScore.set(startKey, 0);
-  fScore.set(startKey, manhattanDistance(startNode, finishNode));
   cameFrom.set(startKey, null);
 
-  // Open set with direction info: [row, col, dirRow, dirCol]
-  // Direction is used to determine which neighbors to explore
-  const openSet: {
-    row: number;
-    col: number;
-    dirRow: number;
-    dirCol: number;
-  }[] = [];
+  // Min-heap priority queue
+  const openSet = new MinHeap();
 
   // Add start node with all directions (no parent direction)
-  openSet.push({
+  openSet.insert({
     row: startNode.row,
     col: startNode.col,
     dirRow: 0,
     dirCol: 0,
+    fScore: manhattanDistance(startNode, finishNode),
   });
-  inOpenSet.set(startKey, true);
 
   /**
-   * Jump function - the core of JPS
-   * Recursively jumps in a direction until it finds:
+   * Jump function - the core of JPS (iterative to avoid stack overflow)
+   * Jumps in a direction until it finds:
    * 1. The goal node
    * 2. A jump point (forced neighbor exists)
    * 3. A wall or boundary (returns null)
    */
   const jump = (
-    row: number,
-    col: number,
+    startRow: number,
+    startCol: number,
     dirRow: number,
     dirCol: number
   ): { row: number; col: number } | null => {
-    const nextRow = row + dirRow;
-    const nextCol = col + dirCol;
+    let row = startRow + dirRow;
+    let col = startCol + dirCol;
 
-    // Hit wall or boundary
-    if (!isWalkable(nextRow, nextCol)) {
-      return null;
-    }
-
-    // Found the goal!
-    if (nextRow === finishNode.row && nextCol === finishNode.col) {
-      return { row: nextRow, col: nextCol };
-    }
-
-    // Check for forced neighbors (4-directional rules)
-    // A forced neighbor exists when there's a wall adjacent to the path
-    // that creates a shorter path through the current node
-
-    // Horizontal movement (dirRow === 0)
-    if (dirRow === 0) {
-      // Check for forced neighbors above and below
-      // If there's a wall above/below and walkable diagonal, it's a jump point
-      if (
-        (!isWalkable(nextRow - 1, nextCol - dirCol) &&
-          isWalkable(nextRow - 1, nextCol)) ||
-        (!isWalkable(nextRow + 1, nextCol - dirCol) &&
-          isWalkable(nextRow + 1, nextCol))
-      ) {
-        return { row: nextRow, col: nextCol };
+    while (true) {
+      // Hit wall or boundary
+      if (!isWalkable(row, col)) {
+        return null;
       }
-    }
 
-    // Vertical movement (dirCol === 0)
-    if (dirCol === 0) {
-      // Check for forced neighbors left and right
-      if (
-        (!isWalkable(nextRow - dirRow, nextCol - 1) &&
-          isWalkable(nextRow, nextCol - 1)) ||
-        (!isWalkable(nextRow - dirRow, nextCol + 1) &&
-          isWalkable(nextRow, nextCol + 1))
-      ) {
-        return { row: nextRow, col: nextCol };
+      // Found the goal!
+      if (row === finishNode.row && col === finishNode.col) {
+        return { row, col };
       }
-    }
 
-    // Continue jumping in the same direction
-    return jump(nextRow, nextCol, dirRow, dirCol);
+      // Check for forced neighbors (4-directional rules)
+      // Horizontal movement (dirRow === 0)
+      if (dirRow === 0) {
+        if (
+          (!isWalkable(row - 1, col - dirCol) && isWalkable(row - 1, col)) ||
+          (!isWalkable(row + 1, col - dirCol) && isWalkable(row + 1, col))
+        ) {
+          return { row, col };
+        }
+      }
+
+      // Vertical movement (dirCol === 0)
+      if (dirCol === 0) {
+        if (
+          (!isWalkable(row - dirRow, col - 1) && isWalkable(row, col - 1)) ||
+          (!isWalkable(row - dirRow, col + 1) && isWalkable(row, col + 1))
+        ) {
+          return { row, col };
+        }
+      }
+
+      // Continue jumping in the same direction
+      row += dirRow;
+      col += dirCol;
+    }
   };
 
   /**
@@ -183,7 +285,7 @@ export function jumpPointSearch(
       directionsToCheck = DIRECTIONS;
     } else if (parentDirRow === 0) {
       // Horizontal movement - continue horizontal + check perpendicular if forced
-      directionsToCheck = [[0, parentDirCol]]; // Continue in same direction
+      directionsToCheck = [[0, parentDirCol]];
 
       // Add perpendicular directions if forced neighbors exist
       if (
@@ -200,7 +302,7 @@ export function jumpPointSearch(
       }
     } else {
       // Vertical movement - continue vertical + check perpendicular if forced
-      directionsToCheck = [[parentDirRow, 0]]; // Continue in same direction
+      directionsToCheck = [[parentDirRow, 0]];
 
       // Add perpendicular directions if forced neighbors exist
       if (
@@ -229,19 +331,10 @@ export function jumpPointSearch(
   };
 
   // Main loop
-  while (openSet.length > 0) {
-    // Sort by fScore and get lowest
-    openSet.sort((a, b) => {
-      const fA = fScore.get(getKey(a.row, a.col)) ?? Infinity;
-      const fB = fScore.get(getKey(b.row, b.col)) ?? Infinity;
-      return fA - fB;
-    });
-
-    const current = openSet.shift()!;
+  while (!openSet.isEmpty()) {
+    const current = openSet.extractMin()!;
     const currentKey = getKey(current.row, current.col);
     const currentNode = grid[current.row][current.col];
-
-    inOpenSet.set(currentKey, false);
 
     // Skip if already visited
     if (currentNode.isVisited) continue;
@@ -253,7 +346,7 @@ export function jumpPointSearch(
     // Found the goal!
     if (current.row === finishNode.row && current.col === finishNode.col) {
       // Reconstruct path using previousNode pointers
-      reconstructPath(grid, cameFrom, startNode, finishNode);
+      reconstructPath(grid, cameFrom, finishNode);
       return visitedNodesInOrder;
     }
 
@@ -280,10 +373,9 @@ export function jumpPointSearch(
         // Found a better path
         cameFrom.set(successorKey, currentKey);
         gScore.set(successorKey, tentativeGScore);
-        fScore.set(
-          successorKey,
-          tentativeGScore + manhattanDistance(successorNode, finishNode)
-        );
+
+        const fScoreValue =
+          tentativeGScore + manhattanDistance(successorNode, finishNode);
 
         // Calculate direction from current to successor
         const dirRow =
@@ -299,15 +391,13 @@ export function jumpPointSearch(
             ? 1
             : -1;
 
-        if (!inOpenSet.get(successorKey)) {
-          openSet.push({
-            row: successor.row,
-            col: successor.col,
-            dirRow,
-            dirCol,
-          });
-          inOpenSet.set(successorKey, true);
-        }
+        openSet.insert({
+          row: successor.row,
+          col: successor.col,
+          dirRow,
+          dirCol,
+          fScore: fScoreValue,
+        });
       }
     }
   }
@@ -323,7 +413,6 @@ export function jumpPointSearch(
 function reconstructPath(
   grid: Grid,
   cameFrom: Map<string, string | null>,
-  _startNode: Node,
   finishNode: Node
 ): void {
   const path: Node[] = [];

@@ -4,9 +4,126 @@
  *
  * This is a pure TypeScript implementation with no DOM/React dependencies.
  * Returns the order of visited nodes for animation purposes.
+ *
+ * Time Complexity: O((V + E) log V) with min-heap
+ * Space Complexity: O(V)
  */
 
-import { Grid, Node } from '../../types';
+import { Grid, Node } from "../../types";
+
+// ============================================================================
+// Min-Heap Priority Queue Implementation
+// ============================================================================
+
+/**
+ * Binary Min-Heap for efficient priority queue operations.
+ * - insert: O(log n)
+ * - extractMin: O(log n)
+ * - decreaseKey: O(log n)
+ */
+class MinHeap {
+  private heap: Node[] = [];
+  private positionMap: Map<string, number> = new Map();
+
+  private getKey(node: Node): string {
+    return `${node.row}-${node.col}`;
+  }
+
+  get size(): number {
+    return this.heap.length;
+  }
+
+  isEmpty(): boolean {
+    return this.heap.length === 0;
+  }
+
+  insert(node: Node): void {
+    const key = this.getKey(node);
+    if (this.positionMap.has(key)) {
+      // Update existing node (decrease key)
+      const idx = this.positionMap.get(key)!;
+      this.heap[idx] = node;
+      this.bubbleUp(idx);
+      this.bubbleDown(idx);
+    } else {
+      this.heap.push(node);
+      const idx = this.heap.length - 1;
+      this.positionMap.set(key, idx);
+      this.bubbleUp(idx);
+    }
+  }
+
+  extractMin(): Node | undefined {
+    if (this.heap.length === 0) return undefined;
+    if (this.heap.length === 1) {
+      const node = this.heap.pop()!;
+      this.positionMap.delete(this.getKey(node));
+      return node;
+    }
+
+    const min = this.heap[0];
+    const last = this.heap.pop()!;
+    this.positionMap.delete(this.getKey(min));
+
+    if (this.heap.length > 0) {
+      this.heap[0] = last;
+      this.positionMap.set(this.getKey(last), 0);
+      this.bubbleDown(0);
+    }
+
+    return min;
+  }
+
+  private bubbleUp(idx: number): void {
+    while (idx > 0) {
+      const parentIdx = Math.floor((idx - 1) / 2);
+      if (this.heap[idx].distance >= this.heap[parentIdx].distance) {
+        break;
+      }
+      this.swap(idx, parentIdx);
+      idx = parentIdx;
+    }
+  }
+
+  private bubbleDown(idx: number): void {
+    const length = this.heap.length;
+    while (true) {
+      const leftIdx = 2 * idx + 1;
+      const rightIdx = 2 * idx + 2;
+      let smallest = idx;
+
+      if (
+        leftIdx < length &&
+        this.heap[leftIdx].distance < this.heap[smallest].distance
+      ) {
+        smallest = leftIdx;
+      }
+      if (
+        rightIdx < length &&
+        this.heap[rightIdx].distance < this.heap[smallest].distance
+      ) {
+        smallest = rightIdx;
+      }
+
+      if (smallest === idx) break;
+
+      this.swap(idx, smallest);
+      idx = smallest;
+    }
+  }
+
+  private swap(i: number, j: number): void {
+    const keyI = this.getKey(this.heap[i]);
+    const keyJ = this.getKey(this.heap[j]);
+    [this.heap[i], this.heap[j]] = [this.heap[j], this.heap[i]];
+    this.positionMap.set(keyI, j);
+    this.positionMap.set(keyJ, i);
+  }
+}
+
+// ============================================================================
+// Dijkstra's Algorithm
+// ============================================================================
 
 /**
  * Performs Dijkstra's algorithm to find the shortest path.
@@ -18,14 +135,14 @@ import { Grid, Node } from '../../types';
  *
  * Algorithm Steps:
  * 1. Initialize start node distance to 0 (all others are Infinity)
- * 2. Create list of all unvisited nodes
- * 3. Loop:
- *    - Sort unvisited by distance, pick closest
- *    - If closest is Infinity → trapped (no path)
- *    - If closest is wall → skip
- *    - If closest is finish → done
- *    - Update neighbors' distances and previousNode
+ * 2. Insert start node into min-heap priority queue
+ * 3. Loop while heap is not empty:
+ *    - Extract node with minimum distance
+ *    - If already visited → skip
+ *    - If wall → skip
  *    - Mark as visited, add to visitedNodesInOrder
+ *    - If finish → done
+ *    - Relax all unvisited neighbors (update distances if shorter)
  */
 export function dijkstra(
   grid: Grid,
@@ -33,19 +150,26 @@ export function dijkstra(
   finishNode: Node
 ): Node[] {
   const visitedNodesInOrder: Node[] = [];
+  const visited = new Set<string>();
+
+  const getKey = (node: Node): string => `${node.row}-${node.col}`;
 
   // Initialize start node distance
   startNode.distance = 0;
 
-  // Get all nodes as unvisited list
-  const unvisitedNodes = getAllNodes(grid);
+  // Min-heap priority queue
+  const minHeap = new MinHeap();
+  minHeap.insert(startNode);
 
-  while (unvisitedNodes.length > 0) {
-    // Sort by distance (smallest first)
-    sortNodesByDistance(unvisitedNodes);
+  while (!minHeap.isEmpty()) {
+    // Extract node with minimum distance
+    const closestNode = minHeap.extractMin()!;
+    const closestKey = getKey(closestNode);
 
-    // Get the closest node
-    const closestNode = unvisitedNodes.shift()!;
+    // Skip if already visited
+    if (visited.has(closestKey)) {
+      continue;
+    }
 
     // Skip walls - they are not traversable
     if (closestNode.isWall) {
@@ -53,12 +177,12 @@ export function dijkstra(
     }
 
     // If closest node has Infinity distance, we're trapped
-    // (no path exists to remaining nodes)
     if (closestNode.distance === Infinity) {
       return visitedNodesInOrder;
     }
 
     // Mark as visited and record visit order
+    visited.add(closestKey);
     closestNode.isVisited = true;
     visitedNodesInOrder.push(closestNode);
 
@@ -67,8 +191,18 @@ export function dijkstra(
       return visitedNodesInOrder;
     }
 
-    // Update all unvisited neighbors
-    updateUnvisitedNeighbors(closestNode, grid);
+    // Relax all unvisited neighbors
+    const neighbors = getUnvisitedNeighbors(closestNode, grid, visited);
+    for (const neighbor of neighbors) {
+      const newDistance = closestNode.distance + 1;
+
+      // Standard Dijkstra relaxation: only update if shorter
+      if (newDistance < neighbor.distance) {
+        neighbor.distance = newDistance;
+        neighbor.previousNode = closestNode;
+        minHeap.insert(neighbor);
+      }
+    }
   }
 
   return visitedNodesInOrder;
@@ -101,46 +235,14 @@ export function getNodesInShortestPathOrder(finishNode: Node): Node[] {
 // ============================================================================
 
 /**
- * Flattens the 2D grid into a 1D array of all nodes.
- */
-function getAllNodes(grid: Grid): Node[] {
-  const nodes: Node[] = [];
-  for (const row of grid) {
-    for (const node of row) {
-      nodes.push(node);
-    }
-  }
-  return nodes;
-}
-
-/**
- * Sorts nodes by distance in ascending order (in-place).
- * Note: Simple array sort is O(n log n). A Min-Heap would be O(log n)
- * for production, but this is acceptable for visualization purposes.
- */
-function sortNodesByDistance(unvisitedNodes: Node[]): void {
-  unvisitedNodes.sort((a, b) => a.distance - b.distance);
-}
-
-/**
- * Updates the distance and previousNode of all unvisited neighbors.
- * Each neighbor's distance = current distance + 1 (uniform cost)
- */
-function updateUnvisitedNeighbors(node: Node, grid: Grid): void {
-  const unvisitedNeighbors = getUnvisitedNeighbors(node, grid);
-
-  for (const neighbor of unvisitedNeighbors) {
-    // Distance to neighbor is current distance + 1
-    neighbor.distance = node.distance + 1;
-    neighbor.previousNode = node;
-  }
-}
-
-/**
  * Gets all unvisited, non-wall neighbors of a node.
  * Neighbors are the 4 adjacent cells (up, down, left, right).
  */
-function getUnvisitedNeighbors(node: Node, grid: Grid): Node[] {
+function getUnvisitedNeighbors(
+  node: Node,
+  grid: Grid,
+  visited: Set<string>
+): Node[] {
   const neighbors: Node[] = [];
   const { row, col } = node;
   const numRows = grid.length;
@@ -163,6 +265,9 @@ function getUnvisitedNeighbors(node: Node, grid: Grid): Node[] {
     neighbors.push(grid[row][col + 1]);
   }
 
-  // Filter to only unvisited neighbors
-  return neighbors.filter((neighbor) => !neighbor.isVisited);
+  // Filter to only unvisited, non-wall neighbors
+  return neighbors.filter((neighbor) => {
+    const key = `${neighbor.row}-${neighbor.col}`;
+    return !visited.has(key) && !neighbor.isWall;
+  });
 }

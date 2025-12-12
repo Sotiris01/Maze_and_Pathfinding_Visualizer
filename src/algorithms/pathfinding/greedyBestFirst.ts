@@ -12,11 +12,138 @@
  * This makes Greedy faster but does NOT guarantee the shortest path.
  * It's useful when you want to find "a" path quickly, not necessarily the best one.
  *
+ * Time Complexity: O((V + E) log V) with min-heap
+ * Space Complexity: O(V)
+ *
  * Note: Since this algorithm uses heuristics (needs to know target location),
  * it should be DISABLED in Hidden Target Mode.
  */
 
 import { Grid, Node } from "../../types";
+
+// ============================================================================
+// Min-Heap Priority Queue Implementation
+// ============================================================================
+
+/**
+ * Binary Min-Heap for efficient priority queue operations.
+ * - insert: O(log n)
+ * - extractMin: O(log n)
+ */
+class MinHeap {
+  private heap: Node[] = [];
+  private getKey: (node: Node) => string;
+  private getPriority: (node: Node) => number;
+  private positionMap: Map<string, number> = new Map();
+
+  constructor(
+    getKey: (node: Node) => string,
+    getPriority: (node: Node) => number
+  ) {
+    this.getKey = getKey;
+    this.getPriority = getPriority;
+  }
+
+  get size(): number {
+    return this.heap.length;
+  }
+
+  isEmpty(): boolean {
+    return this.heap.length === 0;
+  }
+
+  insert(node: Node): void {
+    const key = this.getKey(node);
+    if (this.positionMap.has(key)) {
+      // Update existing node's position
+      const idx = this.positionMap.get(key)!;
+      this.heap[idx] = node;
+      this.bubbleUp(idx);
+      this.bubbleDown(idx);
+    } else {
+      this.heap.push(node);
+      const idx = this.heap.length - 1;
+      this.positionMap.set(key, idx);
+      this.bubbleUp(idx);
+    }
+  }
+
+  extractMin(): Node | undefined {
+    if (this.heap.length === 0) return undefined;
+    if (this.heap.length === 1) {
+      const node = this.heap.pop()!;
+      this.positionMap.delete(this.getKey(node));
+      return node;
+    }
+
+    const min = this.heap[0];
+    const last = this.heap.pop()!;
+    this.positionMap.delete(this.getKey(min));
+
+    if (this.heap.length > 0) {
+      this.heap[0] = last;
+      this.positionMap.set(this.getKey(last), 0);
+      this.bubbleDown(0);
+    }
+
+    return min;
+  }
+
+  private bubbleUp(idx: number): void {
+    while (idx > 0) {
+      const parentIdx = Math.floor((idx - 1) / 2);
+      if (
+        this.getPriority(this.heap[idx]) >=
+        this.getPriority(this.heap[parentIdx])
+      ) {
+        break;
+      }
+      this.swap(idx, parentIdx);
+      idx = parentIdx;
+    }
+  }
+
+  private bubbleDown(idx: number): void {
+    const length = this.heap.length;
+    while (true) {
+      const leftIdx = 2 * idx + 1;
+      const rightIdx = 2 * idx + 2;
+      let smallest = idx;
+
+      if (
+        leftIdx < length &&
+        this.getPriority(this.heap[leftIdx]) <
+          this.getPriority(this.heap[smallest])
+      ) {
+        smallest = leftIdx;
+      }
+      if (
+        rightIdx < length &&
+        this.getPriority(this.heap[rightIdx]) <
+          this.getPriority(this.heap[smallest])
+      ) {
+        smallest = rightIdx;
+      }
+
+      if (smallest === idx) break;
+
+      this.swap(idx, smallest);
+      idx = smallest;
+    }
+  }
+
+  private swap(i: number, j: number): void {
+    const keyI = this.getKey(this.heap[i]);
+    const keyJ = this.getKey(this.heap[j]);
+    [this.heap[i], this.heap[j]] = [this.heap[j], this.heap[i]];
+    this.positionMap.set(keyI, j);
+    this.positionMap.set(keyJ, i);
+  }
+}
+
+// ============================================================================
+// Greedy Best-First Search Algorithm
+// ============================================================================
 
 /**
  * Manhattan Distance Heuristic
@@ -41,17 +168,17 @@ function manhattanDistance(nodeA: Node, nodeB: Node): number {
  * @returns Array of nodes in the order they were visited
  *
  * Algorithm Steps:
- * 1. Initialize fScore = heuristic (distance to goal only)
- * 2. Add startNode to Open Set
- * 3. Loop while Open Set is not empty:
- *    - Pop node with lowest fScore (closest to goal by heuristic)
+ * 1. Initialize priority = heuristic (distance to goal only)
+ * 2. Add startNode to min-heap priority queue
+ * 3. Loop while heap is not empty:
+ *    - Extract node with lowest heuristic (closest to goal)
  *    - If node is finish → return visitedNodesInOrder
  *    - If node is wall or visited → skip
  *    - Mark as visited, add to visitedNodesInOrder
  *    - For each unvisited neighbor:
  *      - Set previousNode for path reconstruction
- *      - Calculate fScore = heuristic only (no gScore!)
- *      - Add to Open Set
+ *      - Calculate priority = heuristic only (no gScore!)
+ *      - Add to heap
  * 4. Return visitedNodesInOrder (empty or partial if no path)
  *
  * Key Characteristics:
@@ -66,42 +193,28 @@ export function greedyBestFirst(
   finishNode: Node
 ): Node[] {
   const visitedNodesInOrder: Node[] = [];
-
-  // Use Map to track fScore (heuristic only)
-  // Key: "row-col", Value: heuristic score
-  const fScore = new Map<string, number>();
-  const inOpenSet = new Map<string, boolean>();
+  const visited = new Set<string>();
 
   // Helper to get node key
   const getKey = (node: Node): string => `${node.row}-${node.col}`;
 
-  // Initialize all nodes with Infinity scores
-  for (const row of grid) {
-    for (const node of row) {
-      const key = getKey(node);
-      fScore.set(key, Infinity);
-    }
-  }
+  // Store heuristic values for heap priority
+  const hScore = new Map<string, number>();
+
+  // Min-heap priority queue using heuristic only
+  const openSet = new MinHeap(
+    getKey,
+    (node: Node) => hScore.get(getKey(node)) ?? Infinity
+  );
 
   // Initialize start node with heuristic only (no gScore)
   const startKey = getKey(startNode);
-  fScore.set(startKey, manhattanDistance(startNode, finishNode));
+  hScore.set(startKey, manhattanDistance(startNode, finishNode));
+  openSet.insert(startNode);
 
-  // Open Set - nodes to be evaluated (sorted by fScore)
-  const openSet: Node[] = [startNode];
-  inOpenSet.set(startKey, true);
-
-  while (openSet.length > 0) {
-    // Sort by fScore (heuristic only) and get node with lowest fScore
-    openSet.sort((a, b) => {
-      const fA = fScore.get(getKey(a)) ?? Infinity;
-      const fB = fScore.get(getKey(b)) ?? Infinity;
-      return fA - fB;
-    });
-
-    const current = openSet.shift()!;
+  while (!openSet.isEmpty()) {
+    const current = openSet.extractMin()!;
     const currentKey = getKey(current);
-    inOpenSet.set(currentKey, false);
 
     // Skip walls - they are not traversable
     if (current.isWall) {
@@ -109,11 +222,12 @@ export function greedyBestFirst(
     }
 
     // Skip already visited nodes
-    if (current.isVisited) {
+    if (visited.has(currentKey)) {
       continue;
     }
 
     // Mark as visited and record visit order
+    visited.add(currentKey);
     current.isVisited = true;
     visitedNodesInOrder.push(current);
 
@@ -126,28 +240,22 @@ export function greedyBestFirst(
     const neighbors = getNeighbors(current, grid);
 
     for (const neighbor of neighbors) {
-      // Skip walls and already visited nodes
-      if (neighbor.isWall || neighbor.isVisited) {
-        continue;
-      }
-
       const neighborKey = getKey(neighbor);
 
-      // Skip if already in open set (unlike A*, we don't update paths)
-      if (inOpenSet.get(neighborKey)) {
+      // Skip walls and already visited nodes
+      if (neighbor.isWall || visited.has(neighborKey)) {
         continue;
       }
 
       // Set the path pointer for backtracking
       neighbor.previousNode = current;
 
-      // GREEDY: fScore = heuristic ONLY (no gScore!)
+      // GREEDY: priority = heuristic ONLY (no gScore!)
       // This is the key difference from A*
-      fScore.set(neighborKey, manhattanDistance(neighbor, finishNode));
+      hScore.set(neighborKey, manhattanDistance(neighbor, finishNode));
 
       // Add to open set
-      openSet.push(neighbor);
-      inOpenSet.set(neighborKey, true);
+      openSet.insert(neighbor);
     }
   }
 

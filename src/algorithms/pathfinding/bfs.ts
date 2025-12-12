@@ -7,9 +7,52 @@
  *
  * This is a pure TypeScript implementation with no DOM/React dependencies.
  * Returns the order of visited nodes for animation purposes.
+ *
+ * Uses an O(1) dequeue implementation for optimal performance.
  */
 
-import { Grid, Node } from '../../types';
+import { Grid, Node } from "../../types";
+
+// ============================================================================
+// O(1) Queue Implementation
+// ============================================================================
+
+/**
+ * Simple queue with O(1) enqueue and dequeue operations.
+ * Uses a head pointer instead of Array.shift() which is O(n).
+ */
+class Queue<T> {
+  private items: T[] = [];
+  private head: number = 0;
+
+  enqueue(item: T): void {
+    this.items.push(item);
+  }
+
+  dequeue(): T | undefined {
+    if (this.isEmpty()) return undefined;
+    const item = this.items[this.head];
+    this.head++;
+    // Periodically compact the array to prevent memory bloat
+    if (this.head > 1000 && this.head > this.items.length / 2) {
+      this.items = this.items.slice(this.head);
+      this.head = 0;
+    }
+    return item;
+  }
+
+  isEmpty(): boolean {
+    return this.head >= this.items.length;
+  }
+
+  get size(): number {
+    return this.items.length - this.head;
+  }
+}
+
+// ============================================================================
+// BFS Algorithm
+// ============================================================================
 
 /**
  * Performs Breadth-First Search to find the shortest path.
@@ -23,7 +66,7 @@ import { Grid, Node } from '../../types';
  * 1. Initialize a queue with the start node
  * 2. Mark start node as visited
  * 3. While queue is not empty:
- *    - Dequeue the first node (FIFO)
+ *    - Dequeue the first node (FIFO) - O(1)
  *    - If node is finish → return visitedNodesInOrder
  *    - If node is wall → skip
  *    - Get all unvisited neighbors (up, down, left, right)
@@ -34,31 +77,24 @@ import { Grid, Node } from '../../types';
  *      - Add to visitedNodesInOrder
  * 4. Return visitedNodesInOrder (may be incomplete if no path exists)
  *
- * Key Characteristics:
- * - Guarantees shortest path in unweighted graphs
- * - Explores nodes level by level (breadth-first)
- * - Uses a Queue (FIFO) data structure
- * - Time Complexity: O(V + E) where V = vertices, E = edges
+ * Time Complexity: O(V + E) where V = vertices, E = edges
+ * Space Complexity: O(V)
  */
-export function bfs(
-  grid: Grid,
-  startNode: Node,
-  finishNode: Node
-): Node[] {
+export function bfs(grid: Grid, startNode: Node, finishNode: Node): Node[] {
   const visitedNodesInOrder: Node[] = [];
 
-  // Queue for BFS - FIFO (First In, First Out)
-  const queue: Node[] = [];
+  // Queue for BFS - FIFO with O(1) operations
+  const queue = new Queue<Node>();
 
   // Initialize: mark start as visited and enqueue
   startNode.isVisited = true;
   startNode.distance = 0;
-  queue.push(startNode);
+  queue.enqueue(startNode);
   visitedNodesInOrder.push(startNode);
 
-  while (queue.length > 0) {
-    // Dequeue the first node (FIFO)
-    const currentNode = queue.shift()!;
+  while (!queue.isEmpty()) {
+    // Dequeue the first node (FIFO) - O(1)
+    const currentNode = queue.dequeue()!;
 
     // Skip walls - they are not traversable
     if (currentNode.isWall) {
@@ -88,8 +124,8 @@ export function bfs(
       // Set distance (optional for BFS, but useful for consistency)
       neighbor.distance = currentNode.distance + 1;
 
-      // Enqueue the neighbor
-      queue.push(neighbor);
+      // Enqueue the neighbor - O(1)
+      queue.enqueue(neighbor);
 
       // Record visit order for animation
       visitedNodesInOrder.push(neighbor);

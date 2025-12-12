@@ -10,14 +10,54 @@
  * - Guarantees shortest path in unweighted graphs
  * - Explores from both ends simultaneously
  * - Meeting point detection when frontiers intersect
- * - Time Complexity: O(b^(d/2)) compared to O(b^d) for unidirectional
- *   where b = branching factor, d = depth
+ * - Uses O(1) queue operations for optimal performance
+ *
+ * Time Complexity: O(V + E) with efficient queue
+ * Space Complexity: O(V)
  */
 
 import { Grid, Node } from "../../types";
 
-// Module-level variable to store the path after algorithm runs
-let reconstructedPath: Node[] = [];
+// ============================================================================
+// O(1) Queue Implementation
+// ============================================================================
+
+/**
+ * Efficient FIFO Queue with O(1) enqueue and dequeue operations.
+ * Uses a head pointer instead of Array.shift() to avoid O(n) operations.
+ */
+class Queue<T> {
+  private items: T[] = [];
+  private head: number = 0;
+
+  enqueue(item: T): void {
+    this.items.push(item);
+  }
+
+  dequeue(): T | undefined {
+    if (this.head >= this.items.length) return undefined;
+    const item = this.items[this.head];
+    this.head++;
+    // Compact when more than half the array is dead space
+    if (this.head > this.items.length / 2 && this.head > 100) {
+      this.items = this.items.slice(this.head);
+      this.head = 0;
+    }
+    return item;
+  }
+
+  get size(): number {
+    return this.items.length - this.head;
+  }
+
+  isEmpty(): boolean {
+    return this.head >= this.items.length;
+  }
+}
+
+// ============================================================================
+// Bidirectional BFS Algorithm
+// ============================================================================
 
 /**
  * Performs Bidirectional BFS to find the shortest path.
@@ -36,16 +76,13 @@ export function bidirectionalBFS(
   const numRows = grid.length;
   const numCols = grid[0].length;
 
-  // Reset the path
-  reconstructedPath = [];
-
   // Parent maps for path reconstruction
-  const parentFromStart: Map<string, Node | null> = new Map();
-  const parentFromFinish: Map<string, Node | null> = new Map();
+  const parentFromStart = new Map<string, Node | null>();
+  const parentFromFinish = new Map<string, Node | null>();
 
   // Visited sets for each direction
-  const visitedFromStart: Set<string> = new Set();
-  const visitedFromFinish: Set<string> = new Set();
+  const visitedFromStart = new Set<string>();
+  const visitedFromFinish = new Set<string>();
 
   // Helper to get node key
   const getKey = (node: Node): string => `${node.row}-${node.col}`;
@@ -54,9 +91,9 @@ export function bidirectionalBFS(
     return grid[row][col];
   };
 
-  // Initialize queues
-  const startQueue: Node[] = [startNode];
-  const finishQueue: Node[] = [finishNode];
+  // Initialize O(1) queues
+  const startQueue = new Queue<Node>();
+  const finishQueue = new Queue<Node>();
 
   // Initialize start node
   const startKey = getKey(startNode);
@@ -64,11 +101,13 @@ export function bidirectionalBFS(
   parentFromStart.set(startKey, null);
   startNode.isVisited = true;
   visitedNodesInOrder.push(startNode);
+  startQueue.enqueue(startNode);
 
   // Initialize finish node
   const finishKey = getKey(finishNode);
   visitedFromFinish.add(finishKey);
   parentFromFinish.set(finishKey, null);
+  finishQueue.enqueue(finishNode);
 
   // Track meeting point
   let meetingKey: string | null = null;
@@ -80,23 +119,19 @@ export function bidirectionalBFS(
     const neighbors: Node[] = [];
     const { row, col } = node;
 
-    // Up
     if (row > 0) neighbors.push(grid[row - 1][col]);
-    // Down
     if (row < numRows - 1) neighbors.push(grid[row + 1][col]);
-    // Left
     if (col > 0) neighbors.push(grid[row][col - 1]);
-    // Right
     if (col < numCols - 1) neighbors.push(grid[row][col + 1]);
 
     return neighbors.filter((n) => !n.isWall);
   };
 
   // Main loop - alternate between expanding from start and finish
-  while (startQueue.length > 0 && finishQueue.length > 0) {
+  while (!startQueue.isEmpty() && !finishQueue.isEmpty()) {
     // Expand from start side
-    if (startQueue.length > 0) {
-      const currentNode = startQueue.shift()!;
+    if (!startQueue.isEmpty()) {
+      const currentNode = startQueue.dequeue()!;
 
       for (const neighbor of getNeighbors(currentNode)) {
         const neighborKey = getKey(neighbor);
@@ -116,15 +151,15 @@ export function bidirectionalBFS(
           break;
         }
 
-        startQueue.push(neighbor);
+        startQueue.enqueue(neighbor);
       }
 
       if (meetingKey) break;
     }
 
     // Expand from finish side
-    if (finishQueue.length > 0 && !meetingKey) {
-      const currentNode = finishQueue.shift()!;
+    if (!finishQueue.isEmpty() && !meetingKey) {
+      const currentNode = finishQueue.dequeue()!;
 
       // Add finish node to visited order on first expansion
       if (currentNode === finishNode) {
@@ -150,7 +185,7 @@ export function bidirectionalBFS(
           break;
         }
 
-        finishQueue.push(neighbor);
+        finishQueue.enqueue(neighbor);
       }
 
       if (meetingKey) break;
@@ -180,12 +215,10 @@ export function bidirectionalBFS(
       currentKey = parent ? getKey(parent) : null;
     }
 
-    // Combine paths
-    reconstructedPath = [...pathFromStart, ...pathToFinish];
-
-    // Set up previousNode chain for the path (for compatibility with animation)
-    for (let i = 1; i < reconstructedPath.length; i++) {
-      reconstructedPath[i].previousNode = reconstructedPath[i - 1];
+    // Combine and set up previousNode chain
+    const fullPath = [...pathFromStart, ...pathToFinish];
+    for (let i = 1; i < fullPath.length; i++) {
+      fullPath[i].previousNode = fullPath[i - 1];
     }
 
     // Mark finish as having a valid path
@@ -197,18 +230,12 @@ export function bidirectionalBFS(
 
 /**
  * Returns the shortest path found by bidirectionalBFS.
- * Must be called after bidirectionalBFS has run.
+ * Uses the previousNode chain set up during path reconstruction.
  *
- * @param finishNode - The destination node (used for compatibility, actual path stored internally)
+ * @param finishNode - The destination node
  * @returns Array of nodes representing the shortest path from start to finish
  */
 export function getNodesInShortestPathOrder(finishNode: Node): Node[] {
-  // If we have a reconstructed path from bidirectional search, use it
-  if (reconstructedPath.length > 0) {
-    return reconstructedPath;
-  }
-
-  // Fallback: standard path reconstruction via previousNode chain
   const nodesInShortestPathOrder: Node[] = [];
   let currentNode: Node | null = finishNode;
 

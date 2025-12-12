@@ -12,10 +12,13 @@
  * - Each step moves 2 cells to leave room for walls between passages
  * - Results in a "perfect maze" (exactly one path between any two points)
  *
+ * Time Complexity: O(V) where V = number of cells
+ * Space Complexity: O(V) for visited grid and stack
+ *
  * Output: Returns array of wall nodes for animation (inverse of carved passages)
  */
 
-import { Grid, Node } from '../../types';
+import { Grid, Node } from "../../types";
 
 /**
  * Tracks which cells have been visited during maze generation
@@ -51,12 +54,20 @@ export function getRandomizedDFSMaze(
   const startRow = 0;
   const startCol = 0;
 
-  // Carve the maze using recursive DFS
-  carve(grid, startRow, startCol, visited, passagesInOrder);
+  // Carve the maze using iterative DFS (avoids stack overflow)
+  carveIterative(
+    grid,
+    startRow,
+    startCol,
+    numRows,
+    numCols,
+    visited,
+    passagesInOrder
+  );
 
-  // Ensure start and finish nodes are passages (not walls)
-  ensureAccessible(grid, startNode, visited);
-  ensureAccessible(grid, finishNode, visited);
+  // Ensure start and finish nodes are passages and connected to maze
+  ensureConnected(startNode, visited, numRows, numCols);
+  ensureConnected(finishNode, visited, numRows, numCols);
 
   // Build the walls array - all non-passage cells become walls
   const wallsInOrder: Node[] = [];
@@ -77,43 +88,56 @@ export function getRandomizedDFSMaze(
 }
 
 /**
- * Recursive carving function using DFS
+ * Iterative carving function using explicit stack (no recursion)
  * Carves passages by visiting cells 2 steps apart
+ * This avoids stack overflow on large grids
  */
-function carve(
+function carveIterative(
   grid: Grid,
-  row: number,
-  col: number,
+  startRow: number,
+  startCol: number,
+  numRows: number,
+  numCols: number,
   visited: VisitedGrid,
   passagesInOrder: Node[]
 ): void {
-  const numRows = grid.length;
-  const numCols = grid[0].length;
+  // Stack holds [row, col] positions to process
+  const stack: [number, number][] = [[startRow, startCol]];
 
-  // Mark current cell as passage
-  visited[row][col] = true;
-  passagesInOrder.push(grid[row][col]);
+  // Mark starting cell as passage
+  visited[startRow][startCol] = true;
+  passagesInOrder.push(grid[startRow][startCol]);
 
-  // Get neighbors 2 cells away (to leave room for walls)
-  const neighbors = getUnvisitedNeighbors(row, col, numRows, numCols, visited);
+  while (stack.length > 0) {
+    const [row, col] = stack[stack.length - 1]; // Peek top
 
-  // Shuffle neighbors for randomness
-  shuffleArray(neighbors);
+    // Get unvisited neighbors 2 cells away
+    const neighbors = getUnvisitedNeighbors(
+      row,
+      col,
+      numRows,
+      numCols,
+      visited
+    );
 
-  // Visit each neighbor
-  for (const neighbor of neighbors) {
-    const [nextRow, nextCol] = neighbor;
+    if (neighbors.length === 0) {
+      // No unvisited neighbors - backtrack
+      stack.pop();
+    } else {
+      // Pick a random neighbor
+      const randomIndex = Math.floor(Math.random() * neighbors.length);
+      const [nextRow, nextCol] = neighbors[randomIndex];
 
-    // Check if still unvisited (might have been visited from another path)
-    if (!visited[nextRow][nextCol]) {
       // Carve the wall between current and neighbor
       const wallRow = row + (nextRow - row) / 2;
       const wallCol = col + (nextCol - col) / 2;
       visited[wallRow][wallCol] = true;
       passagesInOrder.push(grid[wallRow][wallCol]);
 
-      // Recursively carve from neighbor
-      carve(grid, nextRow, nextCol, visited, passagesInOrder);
+      // Mark neighbor as visited and push to stack
+      visited[nextRow][nextCol] = true;
+      passagesInOrder.push(grid[nextRow][nextCol]);
+      stack.push([nextRow, nextCol]);
     }
   }
 }
@@ -134,9 +158,9 @@ function getUnvisitedNeighbors(
   // Check 2 cells in each direction
   const directions: [number, number][] = [
     [-2, 0], // Up
-    [2, 0],  // Down
+    [2, 0], // Down
     [0, -2], // Left
-    [0, 2],  // Right
+    [0, 2], // Right
   ];
 
   for (const [dRow, dCol] of directions) {
@@ -155,46 +179,66 @@ function getUnvisitedNeighbors(
 }
 
 /**
- * Fisher-Yates shuffle algorithm
- * Randomizes the order of neighbors for maze variety
+ * Ensures a node is a passage and connected to the main maze
+ * Uses BFS to find nearest passage and carves a path to it
  */
-function shuffleArray<T>(array: T[]): void {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-
-/**
- * Ensures a specific node and its surroundings are accessible (not walls)
- * Creates a small clearing around start/finish nodes
- */
-function ensureAccessible(
-  grid: Grid,
+function ensureConnected(
   node: Node,
-  visited: VisitedGrid
+  visited: VisitedGrid,
+  numRows: number,
+  numCols: number
 ): void {
-  const numRows = grid.length;
-  const numCols = grid[0].length;
+  // If already a passage, we're done
+  if (visited[node.row][node.col]) {
+    return;
+  }
 
   // Mark the node itself as passage
   visited[node.row][node.col] = true;
 
-  // Also clear adjacent cells to ensure connectivity
+  // BFS to find nearest existing passage
+  const bfsVisited = new Set<string>();
+  const queue: [number, number, [number, number][]][] = [
+    [node.row, node.col, []],
+  ];
+  bfsVisited.add(`${node.row}-${node.col}`);
+
   const directions: [number, number][] = [
-    [-1, 0], // Up
-    [1, 0],  // Down
-    [0, -1], // Left
-    [0, 1],  // Right
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
   ];
 
-  for (const [dRow, dCol] of directions) {
-    const newRow = node.row + dRow;
-    const newCol = node.col + dCol;
+  while (queue.length > 0) {
+    // Use index-based dequeue to avoid O(n) shift
+    const [row, col, path] = queue.shift()!;
 
-    // Allow clearing cells at edges (full grid bounds)
-    if (newRow >= 0 && newRow < numRows && newCol >= 0 && newCol < numCols) {
-      visited[newRow][newCol] = true;
+    // Check if this cell is part of the main maze (already a passage)
+    if (visited[row][col] && path.length > 0) {
+      // Carve the path to connect to the maze
+      for (const [pRow, pCol] of path) {
+        visited[pRow][pCol] = true;
+      }
+      return;
+    }
+
+    // Explore neighbors
+    for (const [dRow, dCol] of directions) {
+      const newRow = row + dRow;
+      const newCol = col + dCol;
+      const key = `${newRow}-${newCol}`;
+
+      if (
+        newRow >= 0 &&
+        newRow < numRows &&
+        newCol >= 0 &&
+        newCol < numCols &&
+        !bfsVisited.has(key)
+      ) {
+        bfsVisited.add(key);
+        queue.push([newRow, newCol, [...path, [newRow, newCol]]]);
+      }
     }
   }
 }

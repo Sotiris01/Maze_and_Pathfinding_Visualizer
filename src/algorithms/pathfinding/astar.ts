@@ -8,9 +8,141 @@
  *
  * This is a pure TypeScript implementation with no DOM/React dependencies.
  * Returns the order of visited nodes for animation purposes.
+ *
+ * Uses a binary min-heap priority queue for O(n log n) performance.
  */
 
-import { Grid, Node } from '../../types';
+import { Grid, Node } from "../../types";
+
+// ============================================================================
+// Min-Heap Priority Queue Implementation
+// ============================================================================
+
+/**
+ * Binary Min-Heap for efficient priority queue operations.
+ * - insert: O(log n)
+ * - extractMin: O(log n)
+ * - decreaseKey (via re-insert): O(log n)
+ */
+class MinHeap {
+  private heap: Node[] = [];
+  private getKey: (node: Node) => string;
+  private getPriority: (node: Node) => number;
+  private positionMap: Map<string, number> = new Map(); // Track node positions for O(1) contains check
+
+  constructor(
+    getKey: (node: Node) => string,
+    getPriority: (node: Node) => number
+  ) {
+    this.getKey = getKey;
+    this.getPriority = getPriority;
+  }
+
+  get size(): number {
+    return this.heap.length;
+  }
+
+  isEmpty(): boolean {
+    return this.heap.length === 0;
+  }
+
+  contains(node: Node): boolean {
+    return this.positionMap.has(this.getKey(node));
+  }
+
+  insert(node: Node): void {
+    const key = this.getKey(node);
+    if (this.positionMap.has(key)) {
+      // Node already exists - update its position (decrease key operation)
+      const idx = this.positionMap.get(key)!;
+      this.heap[idx] = node;
+      this.bubbleUp(idx);
+      this.bubbleDown(idx);
+    } else {
+      // New node
+      this.heap.push(node);
+      const idx = this.heap.length - 1;
+      this.positionMap.set(key, idx);
+      this.bubbleUp(idx);
+    }
+  }
+
+  extractMin(): Node | null {
+    if (this.heap.length === 0) return null;
+    if (this.heap.length === 1) {
+      const node = this.heap.pop()!;
+      this.positionMap.delete(this.getKey(node));
+      return node;
+    }
+
+    const min = this.heap[0];
+    const last = this.heap.pop()!;
+    this.positionMap.delete(this.getKey(min));
+
+    if (this.heap.length > 0) {
+      this.heap[0] = last;
+      this.positionMap.set(this.getKey(last), 0);
+      this.bubbleDown(0);
+    }
+
+    return min;
+  }
+
+  private bubbleUp(idx: number): void {
+    while (idx > 0) {
+      const parentIdx = Math.floor((idx - 1) / 2);
+      if (
+        this.getPriority(this.heap[idx]) >=
+        this.getPriority(this.heap[parentIdx])
+      ) {
+        break;
+      }
+      this.swap(idx, parentIdx);
+      idx = parentIdx;
+    }
+  }
+
+  private bubbleDown(idx: number): void {
+    const length = this.heap.length;
+    while (true) {
+      const leftIdx = 2 * idx + 1;
+      const rightIdx = 2 * idx + 2;
+      let smallest = idx;
+
+      if (
+        leftIdx < length &&
+        this.getPriority(this.heap[leftIdx]) <
+          this.getPriority(this.heap[smallest])
+      ) {
+        smallest = leftIdx;
+      }
+      if (
+        rightIdx < length &&
+        this.getPriority(this.heap[rightIdx]) <
+          this.getPriority(this.heap[smallest])
+      ) {
+        smallest = rightIdx;
+      }
+
+      if (smallest === idx) break;
+
+      this.swap(idx, smallest);
+      idx = smallest;
+    }
+  }
+
+  private swap(i: number, j: number): void {
+    const keyI = this.getKey(this.heap[i]);
+    const keyJ = this.getKey(this.heap[j]);
+    [this.heap[i], this.heap[j]] = [this.heap[j], this.heap[i]];
+    this.positionMap.set(keyI, j);
+    this.positionMap.set(keyJ, i);
+  }
+}
+
+// ============================================================================
+// A* Algorithm
+// ============================================================================
 
 /**
  * Manhattan Distance Heuristic
@@ -36,9 +168,9 @@ function manhattanDistance(nodeA: Node, nodeB: Node): number {
  *
  * Algorithm Steps:
  * 1. Initialize gScore (distance from start) and fScore (gScore + heuristic)
- * 2. Add startNode to Open Set
+ * 2. Add startNode to Open Set (min-heap priority queue)
  * 3. Loop while Open Set is not empty:
- *    - Pop node with lowest fScore
+ *    - Extract node with lowest fScore (O(log n))
  *    - If node is finish → return visitedNodesInOrder
  *    - If node is wall → skip
  *    - Mark as visited, add to visitedNodesInOrder
@@ -46,26 +178,19 @@ function manhattanDistance(nodeA: Node, nodeB: Node): number {
  *      - Calculate tentative gScore
  *      - If tentative < neighbor's gScore:
  *        - Update neighbor's previousNode, gScore, fScore
- *        - Add to Open Set if not present
+ *        - Insert/update in Open Set (O(log n))
  * 4. Return visitedNodesInOrder (empty or partial if no path)
  *
- * Key Difference from Dijkstra:
- * - Dijkstra uses only distance from start (gScore)
- * - A* uses distance from start + estimated distance to goal (fScore)
- * - This heuristic guides the search towards the goal more efficiently
+ * Time Complexity: O((V + E) log V) with min-heap
+ * Space Complexity: O(V)
  */
-export function astar(
-  grid: Grid,
-  startNode: Node,
-  finishNode: Node
-): Node[] {
+export function astar(grid: Grid, startNode: Node, finishNode: Node): Node[] {
   const visitedNodesInOrder: Node[] = [];
 
   // Use Maps to track scores (avoid mutating Node objects in React state)
   // Key: "row-col", Value: score
   const gScore = new Map<string, number>();
   const fScore = new Map<string, number>();
-  const inOpenSet = new Map<string, boolean>();
 
   // Helper to get node key
   const getKey = (node: Node): string => `${node.row}-${node.col}`;
@@ -84,21 +209,17 @@ export function astar(
   gScore.set(startKey, 0);
   fScore.set(startKey, manhattanDistance(startNode, finishNode));
 
-  // Open Set - nodes to be evaluated (sorted by fScore)
-  const openSet: Node[] = [startNode];
-  inOpenSet.set(startKey, true);
+  // Open Set - min-heap priority queue sorted by fScore
+  const openSet = new MinHeap(
+    getKey,
+    (node: Node) => fScore.get(getKey(node)) ?? Infinity
+  );
+  openSet.insert(startNode);
 
-  while (openSet.length > 0) {
-    // Sort by fScore and get node with lowest fScore
-    openSet.sort((a, b) => {
-      const fA = fScore.get(getKey(a)) ?? Infinity;
-      const fB = fScore.get(getKey(b)) ?? Infinity;
-      return fA - fB;
-    });
-
-    const current = openSet.shift()!;
+  while (!openSet.isEmpty()) {
+    // Extract node with lowest fScore - O(log n)
+    const current = openSet.extractMin()!;
     const currentKey = getKey(current);
-    inOpenSet.set(currentKey, false);
 
     // Skip walls - they are not traversable
     if (current.isWall) {
@@ -145,13 +266,13 @@ export function astar(
         // Update the path - this is the best path to this neighbor so far
         neighbor.previousNode = current;
         gScore.set(neighborKey, tentativeGScore);
-        fScore.set(neighborKey, tentativeGScore + manhattanDistance(neighbor, finishNode));
+        fScore.set(
+          neighborKey,
+          tentativeGScore + manhattanDistance(neighbor, finishNode)
+        );
 
-        // Add to open set if not already there
-        if (!inOpenSet.get(neighborKey)) {
-          openSet.push(neighbor);
-          inOpenSet.set(neighborKey, true);
-        }
+        // Insert or update in open set - O(log n)
+        openSet.insert(neighbor);
       }
     }
   }

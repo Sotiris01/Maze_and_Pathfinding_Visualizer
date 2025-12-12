@@ -264,9 +264,9 @@ export function getSpiralPathMaze(
     direction = (direction + 1) % 4;
   }
 
-  // Protect start and finish
-  isPath.add(`${startNode.row}-${startNode.col}`);
-  isPath.add(`${finishNode.row}-${finishNode.col}`);
+  // Connect start and finish to the spiral path
+  connectToPath(startNode.row, startNode.col, isPath, numRows, numCols);
+  connectToPath(finishNode.row, finishNode.col, isPath, numRows, numCols);
 
   // Add walls for all non-path cells
   for (let r = 0; r < numRows; r++) {
@@ -284,6 +284,82 @@ export function getSpiralPathMaze(
   shuffleArray(wallsInOrder);
 
   return wallsInOrder;
+}
+
+/**
+ * Connects a cell to the nearest point on the existing path using BFS
+ * Carves a passage from the cell to the path
+ */
+function connectToPath(
+  startRow: number,
+  startCol: number,
+  isPath: Set<string>,
+  numRows: number,
+  numCols: number
+): void {
+  const startKey = `${startRow}-${startCol}`;
+
+  // If already on the path, nothing to do
+  if (isPath.has(startKey)) {
+    return;
+  }
+
+  // BFS to find nearest path cell
+  const visited = new Set<string>();
+  const parent = new Map<string, string | null>();
+
+  // Queue: [row, col]
+  const queue: [number, number][] = [[startRow, startCol]];
+  visited.add(startKey);
+  parent.set(startKey, null);
+
+  const directions = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ];
+
+  let foundKey: string | null = null;
+
+  while (queue.length > 0) {
+    const [r, c] = queue.shift()!;
+    const currentKey = `${r}-${c}`;
+
+    // Found the path - stop searching
+    if (isPath.has(currentKey) && currentKey !== startKey) {
+      foundKey = currentKey;
+      break;
+    }
+
+    // Explore neighbors
+    for (const [dr, dc] of directions) {
+      const newRow = r + dr;
+      const newCol = c + dc;
+      const newKey = `${newRow}-${newCol}`;
+
+      if (
+        newRow >= 0 &&
+        newRow < numRows &&
+        newCol >= 0 &&
+        newCol < numCols &&
+        !visited.has(newKey)
+      ) {
+        visited.add(newKey);
+        parent.set(newKey, currentKey);
+        queue.push([newRow, newCol]);
+      }
+    }
+  }
+
+  // Carve the path from start to the found path cell
+  if (foundKey !== null) {
+    let currentKey: string | null = foundKey;
+    while (currentKey !== null) {
+      isPath.add(currentKey);
+      currentKey = parent.get(currentKey) ?? null;
+    }
+  }
 }
 
 /**
