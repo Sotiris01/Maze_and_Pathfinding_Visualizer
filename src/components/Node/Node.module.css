@@ -53,6 +53,30 @@
   cursor: grab;
 }
 
+/* Hidden Target Node - Slow Blinking Red (Fog of War Mode)
+   Visible to user but hidden from algorithm until discovered */
+.node-finish-hidden {
+  animation: hiddenTargetBlink 2s ease-in-out infinite;
+  border-color: #c62828;
+  cursor: default;
+}
+
+.node-finish-hidden:hover {
+  cursor: default;
+}
+
+@keyframes hiddenTargetBlink {
+  0%,
+  100% {
+    background-color: var(--color-finish);
+    opacity: 1;
+  }
+  50% {
+    background-color: rgba(244, 67, 54, 0.3);
+    opacity: 0.5;
+  }
+}
+
 /* Wall Node - Dark Grey */
 .node-wall {
   background-color: var(--color-wall);
@@ -213,7 +237,8 @@
 }
 
 :global(.node-visited-overlap) {
-  animation: visitedAnimationOverlap 1.5s ease-out forwards, pulseOverlap 2s ease-in-out infinite 1.5s;
+  animation: visitedAnimationOverlap 1.5s ease-out forwards,
+    pulseOverlap 2s ease-in-out infinite 1.5s;
 }
 
 @keyframes visitedAnimationOverlap {
@@ -235,7 +260,8 @@
 }
 
 @keyframes pulseOverlap {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.4);
   }
   50% {

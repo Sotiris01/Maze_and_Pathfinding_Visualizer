@@ -2,16 +2,16 @@
 
 ## Project Overview
 
-| Field             | Value                                                                   |
-| ----------------- | ----------------------------------------------------------------------- |
-| **Project Name**  | Maze & Pathfinding Visualizer                                           |
-| **Type**          | Web Application (SPA)                                                   |
-| **Tech Stack**    | React 18, TypeScript 5, Vite 5, CSS Modules                             |
-| **Current Phase** | **COMPLETE** ✅                                                         |
-| **Progress**      | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D ✅ → Phase E ✅          |
-| **Server**        | ✅ Live at https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/ |
-| **Default Grid**  | 20 rows × 30 columns (600 nodes)                                        |
-| **Repository**    | https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer            |
+| Field             | Value                                                                       |
+| ----------------- | --------------------------------------------------------------------------- |
+| **Project Name**  | Maze & Pathfinding Visualizer                                               |
+| **Type**          | Web Application (SPA)                                                       |
+| **Tech Stack**    | React 18, TypeScript 5, Vite 5, CSS Modules, Web Workers                    |
+| **Current Phase** | **Phase F: Extensions & History** (In Progress)                             |
+| **Progress**      | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D ✅ → Phase E ✅ → Phase F 🔄 |
+| **Server**        | ✅ Live at https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/     |
+| **Default Grid**  | 20 rows × 30 columns (600 nodes)                                            |
+| **Repository**    | https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer                |
 
 ---
 
@@ -93,7 +93,7 @@
   - React.memo with custom `arePropsEqual` on NodeComponent (skips function refs)
   - useCallback with refs in Board.tsx to avoid stale closures
   - React.lazy() + Suspense for StatisticsSection (below-fold lazy loading)
-  - Vite manual chunk splitting: vendor-react (141KB), algorithms (5KB), statistics (11KB)
+  - Vite manual chunk splitting: vendor-react (141KB), algorithms (17KB), statistics (11KB)
   - esbuild minification with console/debugger removal
   - Cache-friendly file naming with content hashes
 - [x] **Deployment to GitHub Pages**
@@ -101,6 +101,87 @@
   - Added `gh-pages` package for automated deployment
   - `npm run deploy` pushes dist folder to gh-pages branch
   - Live at: https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/
+
+### Phase F: Extensions & History 🔄 IN PROGRESS
+
+- [x] **Hidden Target Mode (Fog of War)**
+  - Toggle Button "🕵️ Hidden Target" in Control Panel
+  - Logic: When active, the Target Node is visually hidden (renders as normal unvisited node)
+  - Target reveals itself once visited/discovered by algorithm
+  - Prevents dragging finish node in hidden mode (mouse & touch)
+- [x] **Dynamic Algorithm Filtering**
+  - UI Logic: A\* algorithm is disabled (grayed out) when Hidden Target is active
+  - Auto-switch to Dijkstra/BFS if A\* was selected when enabling hidden mode
+  - Only allows "Blind Search" algorithms (BFS, DFS, Dijkstra)
+  - Hint message displays: "💡 Heuristic algorithms disabled in Hidden Mode"
+  - Race Mode: Both agents follow the same filtering rules
+- [x] **New Algorithms**
+  - [x] **Greedy Best-First Search** - Heuristic-only pathfinding (fScore = hScore, no gScore)
+    - Uses Manhattan distance heuristic
+    - Faster than A\* but does NOT guarantee shortest path
+    - Disabled in Hidden Target Mode (requires target coordinates)
+  - [x] **Prim's Maze Algorithm** - Randomized minimum spanning tree
+    - Starts with all walls, carves passages using frontier list
+    - Creates organic, cave-like mazes (different from Recursive Division)
+    - Random wall selection for interesting animation
+  - [x] **Bidirectional BFS (Swarm)** - Searches from both start and finish simultaneously
+    - Two queues expand alternately from both ends
+    - Meeting point detection when frontiers intersect
+    - Path reconstruction combines both halves through meeting node
+    - Explores roughly half the search space of unidirectional BFS
+  - [x] **Bidirectional A\*** - Combines A\* heuristics with bidirectional search
+    - Two priority queues sorted by fScore (one from each end)
+    - Start side heuristic: distance to finish; Finish side heuristic: distance to start
+    - Meeting point detection with optimal path cost tracking
+    - Early termination when remaining nodes cannot improve best path
+    - Disabled in Hidden Target Mode (requires target coordinates)
+  - [x] **Spiral Maze** - Creates walls in spiral pattern from outside to inside
+    - Concentric rectangular rings of walls
+    - Gaps at ring transitions allow traversal to inner layers
+    - Internal barriers for additional complexity
+    - Visually distinctive deterministic pattern
+  - [x] **Jump Point Search (JPS)** - Optimized A\* for uniform-cost grids
+    - "Jumps" over intermediate nodes in straight lines
+    - Only examines jump points (forced neighbors, corners)
+    - 10-100x faster than A\* in open spaces
+    - Guarantees shortest path like A\*
+    - Disabled in Hidden Target Mode (uses heuristic)
+  - [x] **Cellular Automata Maze** - Game of Life-inspired wall generation
+    - Random initial state with configurable wall density
+    - Birth/death rules create organic cave-like patterns
+    - Automatic path carving ensures solvability
+    - Produces unique, non-deterministic maze every time
+- [x] **Industrial-Grade Web Worker Benchmarking System**
+  - Complete thread isolation for scientific timing precision
+  - `benchmark.worker.ts` - Dedicated worker for timing (zero UI interference)
+  - `useBenchmarking.ts` - React hook bridge with Promise-based API
+  - Adaptive sampling: runs algorithm until 1 second elapsed, calculates average
+  - 3x warm-up iterations for JIT optimization before measurement
+  - Request ID system for concurrent benchmark support (Race Mode)
+  - Graceful fallback to main-thread timing if worker fails
+- [x] **Race Mode Statistics Improvements**
+  - Fixed checkmark display when one algorithm fails to find target
+  - Unreachable algorithm shows ⚠️ warning icon (not compared)
+  - Reachable algorithm shows ✓ checkmark (wins by default)
+  - All metrics (Time, Nodes, Path) now pass unreachable flags
+- [x] **First Paint Experience Improvement**
+  - Maze dropdown now always shows a valid maze type (no placeholder)
+  - Random maze type selected on app initialization
+  - Auto-generates maze on mount with 300ms delay (ensures DOM ready)
+  - Creates engaging first impression with pre-filled maze
+- [x] **Start/Finish Node Positioning**
+  - Start Node: Top-left corner (row 1, col 1)
+  - Finish Node: Exact center of grid (rows/2, cols/2)
+  - Positions reset automatically when grid dimensions change via resizeGrid
+  - Safe bounds checking for edge cases (small grids)
+- [ ] **Run History Section (Page 3)**
+  - Create a 3rd Scroll-Snap Section below Statistics
+  - Implement `HistorySection` component with glassmorphism design
+  - Store past runs (Algorithm, Time, Cost, Result, Timestamp) in `localStorage`
+  - Display history in a sortable table with filters
+  - "Replay" button to restore and re-run previous configurations
+  - "Export" functionality to save history as JSON
+  - "Clear History" with confirmation modal
 
 ---
 
@@ -119,15 +200,22 @@
 
 **Pathfinding Algorithms:**
 
-- Dijkstra''s Algorithm
+- Dijkstra's Algorithm
 - A\* Search (Manhattan distance heuristic)
+- Greedy Best-First Search (heuristic-only, no shortest path guarantee)
 - Breadth-First Search (BFS)
 - Depth-First Search (DFS)
+- Bidirectional BFS (Swarm) - searches from both ends
+- Bidirectional A\* - combines heuristics with bidirectional search
+- Jump Point Search (JPS) - optimized A\* that skips intermediate nodes
 
 **Maze Generation:**
 
 - Recursive Division
 - Randomized DFS (Recursive Backtracker)
+- Prim's Algorithm (randomized MST)
+- Spiral Pattern (concentric rings)
+- Cellular Automata (cave-like organic patterns)
 
 **Race Mode:**
 
@@ -135,10 +223,12 @@
 - Agent 1: Blue→Purple (visited), Yellow (path)
 - Agent 2: Orange→Red (visited), Cyan (path)
 - Overlap: Lime Green (shared path nodes)
+- **Improved statistics when one algorithm fails**
 
 **UI Controls:**
 
 - Algorithm selection dropdown
+- Algorithm selection dropdown (with dynamic filtering in Hidden Target Mode)
 - Maze type selection dropdown
 - Speed slider (1-50ms)
 - Grid size sliders
@@ -146,6 +236,15 @@
 - Clear Path, Reset Board, Clear Walls buttons
 - Mobile hamburger menu with slide-over drawer
 - Toast notifications for edge cases
+- Hidden Target Mode toggle (🕵️ Fog of War)
+
+**Benchmarking System:**
+
+- Web Worker isolation for scientific timing precision
+- Adaptive sampling (1 second minimum duration)
+- JIT warm-up (3 iterations before measurement)
+- Concurrent benchmark support via request IDs
+- Automatic fallback to main-thread timing
 
 ### ⚠️ Known Limitations
 
@@ -157,67 +256,77 @@
 
 ```
 src/
-├── App.tsx                              (220 lines) - Main app with lazy loading + Suspense
-├── App.module.css                       (350 lines) - Responsive layout + stats loading fallback
+├── App.tsx                              (223 lines) - Main app with lazy loading + Suspense
+├── App.module.css                       (301 lines) - Responsive layout + stats loading fallback
 ├── main.tsx                             (14 lines) - React entry point
 ├── vite-env.d.ts                        (27 lines) - Vite type declarations
 vite.config.ts                           (60 lines) - Build config with manual chunk splitting
 ├── algorithms/
 │   ├── maze/
+│   │   ├── cellularAutomata.ts          (403 lines) - Cellular automata maze (Game of Life)
+│   │   ├── prims.ts                     (285 lines) - Prim's maze (randomized MST)
 │   │   ├── randomizedDFS.ts             (186 lines) - Randomized DFS maze
-│   │   └── recursiveDivision.ts         (209 lines) - Recursive Division maze
+│   │   ├── recursiveDivision.ts         (209 lines) - Recursive Division maze
+│   │   └── spiralMaze.ts                (265 lines) - Spiral pattern maze
 │   └── pathfinding/
 │       ├── astar.ts                     (190 lines) - A* algorithm
 │       ├── bfs.ts                       (142 lines) - Breadth-First Search
+│       ├── bidirectionalAStar.ts        (342 lines) - Bidirectional A* search
+│       ├── bidirectionalBFS.ts          (186 lines) - Bidirectional BFS (Swarm)
 │       ├── dfs.ts                       (149 lines) - Depth-First Search
-│       └── dijkstra.ts                  (145 lines) - Dijkstra's algorithm
+│       ├── dijkstra.ts                  (145 lines) - Dijkstra's algorithm
+│       ├── greedyBestFirst.ts           (184 lines) - Greedy Best-First Search
+│       └── jumpPointSearch.ts           (342 lines) - Jump Point Search (JPS)
 ├── components/
 │   ├── Board/
-│   │   ├── Board.tsx                    (282 lines) - Grid renderer with touch support
-│   │   ├── Board.module.css             (39 lines) - Grid styles
+│   │   ├── Board.tsx                    (336 lines) - Grid renderer with touch support
+│   │   ├── Board.module.css             (44 lines) - Grid styles
 │   │   └── index.ts                     (2 lines) - Barrel export
 │   ├── Controls/
 │   │   ├── Accordion.tsx                (87 lines) - Reusable collapsible section
-│   │   ├── Accordion.module.css         (115 lines) - Accordion animations/styles
-│   │   ├── ControlPanel.tsx             (310 lines) - Sidebar with accordion groups
-│   │   ├── ControlPanel.module.css      (375 lines) - Professional dark theme styles
+│   │   ├── Accordion.module.css         (105 lines) - Accordion animations/styles
+│   │   ├── ControlPanel.tsx             (458 lines) - Sidebar with accordion groups
+│   │   ├── ControlPanel.module.css      (413 lines) - Professional dark theme styles
 │   │   └── index.ts                     (1 line) - Barrel export
 │   ├── Legend/
-│   │   ├── Legend.tsx                   (59 lines) - Color legend component
-│   │   ├── Legend.module.css            (95 lines) - Legend styles
+│   │   ├── Legend.tsx                   (67 lines) - Color legend component
+│   │   ├── Legend.module.css            (97 lines) - Legend styles
 │   │   └── index.ts                     (1 line) - Barrel export
 │   ├── Modals/
 │   │   └── StatsModal/
-│   │       ├── StatsModal.tsx           (134 lines) - Statistics modal (legacy)
-│   │       ├── StatsModal.module.css    (170 lines) - Modal styles
+│   │       ├── StatsModal.tsx           (130 lines) - Statistics modal (legacy)
+│   │       ├── StatsModal.module.css    (182 lines) - Modal styles
 │   │       └── index.ts                 (2 lines) - Barrel export
 │   ├── Statistics/
-│   │   ├── StatBar.tsx                  (265 lines) - Comparison bars with tie/unreachable states
-│   │   ├── StatBar.module.css           (185 lines) - Progress bars + error/tie styling
-│   │   ├── StatisticsSection.tsx        (325 lines) - Analytics Dashboard with failure handling
-│   │   ├── StatisticsSection.module.css (495 lines) - Responsive 3→1 column layout
+│   │   ├── StatBar.tsx                  (263 lines) - Comparison bars with tie/unreachable states
+│   │   ├── StatBar.module.css           (156 lines) - Progress bars + error/tie styling
+│   │   ├── StatisticsSection.tsx        (297 lines) - Analytics Dashboard with failure handling
+│   │   ├── StatisticsSection.module.css (488 lines) - Responsive 3→1 column layout
 │   │   └── index.ts                     (1 line) - Barrel export
 │   ├── Node/
-│   │   ├── NodeComponent.tsx            (92 lines) - Grid cell with touch support
-│   │   ├── Node.module.css              (242 lines) - Node styles + animations
+│   │   ├── NodeComponent.tsx            (104 lines) - Grid cell with touch support
+│   │   ├── Node.module.css              (265 lines) - Node styles + animations
 │   │   └── index.ts                     (2 lines) - Barrel export
 │   └── UI/
-│       ├── Toast.tsx                    (78 lines) - Toast notification component
-│       └── Toast.module.css             (82 lines) - Slide-up animation styles
+│       ├── Toast.tsx                    (80 lines) - Toast notification component
+│       └── Toast.module.css             (71 lines) - Slide-up animation styles
 ├── context/
-│   └── GridContext.tsx                  (250 lines) - Global state + toast management
+│   └── GridContext.tsx                  (255 lines) - Global state + toast management
 ├── hooks/
-│   └── useVisualization.ts              (875 lines) - Animation system + auto-scroll
+│   ├── useBenchmarking.ts               (196 lines) - Web Worker benchmark hook
+│   └── useVisualization.ts              (929 lines) - Animation system + auto-scroll
 ├── styles/
 │   └── variables.css                    (383 lines) - CSS variables + global animations
 ├── types/
-│   └── index.ts                         (64 lines) - TypeScript interfaces
-└── utils/
-    ├── gridUtils.ts                     (291 lines) - Grid helper functions
-    └── pathUtils.ts                     (10 lines) - Path utilities (placeholder)
+│   └── index.ts                         (73 lines) - TypeScript interfaces
+├── utils/
+│   ├── gridUtils.ts                     (305 lines) - Grid helper functions
+│   └── pathUtils.ts                     (10 lines) - Path utilities (placeholder)
+└── workers/
+    └── benchmark.worker.ts              (200 lines) - Isolated timing Web Worker
 ```
 
-**Total: 39 files, ~5,700 lines of code**
+**Total: 49 files, ~9,596 lines of code**
 
 ---
 
@@ -225,35 +334,37 @@ vite.config.ts                           (60 lines) - Build config with manual c
 
 | Category   | Files  | Lines of Code |
 | ---------- | ------ | ------------- |
-| App Core   | 4      | 450           |
+| App Core   | 4      | 565           |
 | Config     | 1      | 60            |
-| Components | 22     | 2,850         |
-| Algorithms | 6      | 1,021         |
-| Context    | 1      | 250           |
-| Hooks      | 1      | 905           |
+| Components | 22     | 3,123         |
+| Algorithms | 13     | 2,493         |
+| Context    | 1      | 255           |
+| Hooks      | 2      | 1,125         |
 | Styles     | 1      | 383           |
-| Types      | 1      | 64            |
-| Utils      | 2      | 301           |
-| **Total**  | **39** | **~5,700**    |
+| Types      | 1      | 73            |
+| Utils      | 2      | 315           |
+| Workers    | 1      | 200           |
+| **Total**  | **49** | **~9,596**    |
 
 ---
 
 ## Technical Architecture
 
-| Component   | Technology      | Purpose                            |
-| ----------- | --------------- | ---------------------------------- |
-| Build Tool  | Vite 5          | Fast HMR, ESM support              |
-| UI Library  | React 18        | Component-based UI                 |
-| Language    | TypeScript 5    | Type safety                        |
-| State       | React Context   | Global grid state                  |
-| Performance | React.memo      | Custom comparison, skips fn refs   |
-| Code Split  | React.lazy      | Lazy load StatisticsSection        |
-| Bundling    | Rollup chunks   | vendor-react/algorithms/statistics |
-| Layout      | CSS Scroll Snap | Two-page vertical scroll           |
-| Grid        | CSS Grid        | Dynamic grid layout                |
-| Responsive  | CSS Media Query | Mobile drawer + adaptive grids     |
-| Animation   | Direct DOM      | getElementById for 1000+ nodes     |
-| Styling     | CSS Modules     | Scoped + global classes            |
+| Component        | Technology      | Purpose                            |
+| ---------------- | --------------- | ---------------------------------- |
+| Build Tool       | Vite 5          | Fast HMR, ESM support              |
+| UI Library       | React 18        | Component-based UI                 |
+| Language         | TypeScript 5    | Type safety                        |
+| State            | React Context   | Global grid state                  |
+| Performance      | React.memo      | Custom comparison, skips fn refs   |
+| Code Split       | React.lazy      | Lazy load StatisticsSection        |
+| Bundling         | Rollup chunks   | vendor-react/algorithms/statistics |
+| **Benchmarking** | **Web Workers** | **Isolated timing (zero UI jank)** |
+| Layout           | CSS Scroll Snap | Two-page vertical scroll           |
+| Grid             | CSS Grid        | Dynamic grid layout                |
+| Responsive       | CSS Media Query | Mobile drawer + adaptive grids     |
+| Animation        | Direct DOM      | getElementById for 1000+ nodes     |
+| Styling          | CSS Modules     | Scoped + global classes            |
 
 ---
 
@@ -291,12 +402,30 @@ vite.config.ts                           (60 lines) - Build config with manual c
 
 ---
 
+## Build Output
+
+```
+dist/
+├── index.html                      (0.92 kB)
+├── benchmark.worker-*.js           (10.63 kB) - Web Worker bundle
+├── statistics-*.css                (9.45 kB)
+├── index-*.css                     (28.14 kB)
+├── statistics-*.js                 (11.25 kB) - Lazy-loaded stats
+├── algorithms-*.js                 (16.93 kB) - Pathfinding algorithms
+├── index-*.js                      (33.89 kB) - Main bundle
+└── vendor-react-*.js               (141.69 kB) - React runtime
+```
+
+---
+
 ## Notes
 
 - Node size: 25px × 25px (constant)
 - Grid bounds: 5-40 rows, 5-60 columns
 - Animation: setTimeout-based with DOM classList manipulation
 - Race mode uses parallel animation for both agents
+- **Web Worker benchmarking** provides rock-solid stable timing metrics
+- **Phase F** focuses on advanced simulation scenarios (hidden target/fog of war), algorithm expansion, and data persistence (run history with replay capability)
 
 ---
 

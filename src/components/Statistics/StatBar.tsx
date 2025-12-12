@@ -93,8 +93,20 @@ const StatBar: React.FC<StatBarProps> = ({
   let winner2 = false;
   let isTie = false;
 
+  // Special case: when one side is unreachable
+  // - The reachable algorithm "wins" path length (it found a path, the other didn't)
+  // - For time/nodes: the unreachable one gets a checkmark (not a fair comparison)
+  const oneUnreachable =
+    (unreachable1 && !unreachable2) || (!unreachable1 && unreachable2);
+
   if (isDualMode) {
-    if (value1 === value2) {
+    if (oneUnreachable) {
+      // When one is unreachable, the other one automatically "wins" for display purposes
+      // This gives checkmarks to both (unreachable gets pass, reachable gets win)
+      winner1 = true;
+      winner2 = true;
+      isTie = false; // Not a tie, but both get checkmarks
+    } else if (value1 === value2) {
       isTie = true;
       winner1 = true; // Both get "winner" styling for ties
       winner2 = true;
@@ -117,6 +129,8 @@ const StatBar: React.FC<StatBarProps> = ({
     if (isUnreachable) return "#d32f2f"; // Red for unreachable
     if (!isDualMode) return defaultColor;
     if (isTied) return "#2196f3"; // Blue for tie
+    // When one is unreachable, show green for the reachable one (no competition)
+    if (oneUnreachable && !isUnreachable) return "#4caf50";
     return isWinner ? "#4caf50" : "#f44336";
   };
 
@@ -128,6 +142,8 @@ const StatBar: React.FC<StatBarProps> = ({
     if (isUnreachable) return "⚠️";
     if (!isDualMode) return "";
     if (isTied) return "="; // Equal sign for ties
+    // When one is unreachable, show checkmark for the reachable one
+    if (oneUnreachable && !isUnreachable) return "✓";
     return isWinner ? "✓" : "✗";
   };
 

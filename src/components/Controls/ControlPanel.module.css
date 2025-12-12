@@ -81,6 +81,17 @@
   letter-spacing: 0.5px;
 }
 
+/* === Hint Text === */
+.hint {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin: 4px 0 0 0;
+  padding: 6px 8px;
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 4px;
+  border-left: 2px solid #667eea;
+}
+
 /* === Select Dropdown === */
 .select {
   width: 100%;

@@ -1,4 +1,11 @@
-import React, { useRef, useCallback, useState, lazy, Suspense } from "react";
+import React, {
+  useRef,
+  useCallback,
+  useState,
+  lazy,
+  Suspense,
+  useEffect,
+} from "react";
 import { GridProvider, useGridContext } from "./context/GridContext";
 import Board from "./components/Board";
 import { ControlPanel } from "./components/Controls";
@@ -32,6 +39,7 @@ const MainContent: React.FC = () => {
     visualizationStats,
     setVisualizationStats,
     showToast,
+    selectedMaze,
   } = useGridContext();
 
   const {
@@ -46,6 +54,28 @@ const MainContent: React.FC = () => {
 
   // Mobile sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Track if initial maze has been generated
+  const [hasGeneratedInitialMaze, setHasGeneratedInitialMaze] = useState(false);
+
+  // Auto-generate maze on mount for better first paint experience
+  useEffect(() => {
+    if (hasGeneratedInitialMaze) return;
+
+    // Small delay to ensure DOM is fully ready and grid is mounted
+    const timer = setTimeout(() => {
+      generateMaze(
+        selectedMaze,
+        grid,
+        setGrid,
+        setIsVisualizing,
+        Math.max(15, animationSpeed / 2)
+      );
+      setHasGeneratedInitialMaze(true);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [hasGeneratedInitialMaze]); // Only depend on the flag to run once
 
   // Toggle mobile sidebar
   const toggleSidebar = useCallback(() => {

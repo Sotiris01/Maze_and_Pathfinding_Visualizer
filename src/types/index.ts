@@ -22,30 +22,37 @@ export type Grid = Node[][];
  * Algorithm Types
  */
 export enum AlgorithmType {
-  DIJKSTRA = 'dijkstra',
-  ASTAR = 'astar',
-  BFS = 'bfs',
-  DFS = 'dfs',
+  DIJKSTRA = "dijkstra",
+  ASTAR = "astar",
+  BFS = "bfs",
+  DFS = "dfs",
+  GREEDY_BEST_FIRST = "greedyBestFirst",
+  BIDIRECTIONAL_BFS = "bidirectionalBFS",
+  BIDIRECTIONAL_ASTAR = "bidirectionalAStar",
+  JUMP_POINT_SEARCH = "jumpPointSearch",
 }
 
 /**
  * Maze Generation Types
  */
 export enum MazeType {
-  RECURSIVE_DIVISION = 'recursiveDivision',
-  RANDOMIZED_DFS = 'randomizedDFS',
+  RECURSIVE_DIVISION = "recursiveDivision",
+  RANDOMIZED_DFS = "randomizedDFS",
+  PRIMS = "prims",
+  SPIRAL = "spiral",
+  CELLULAR_AUTOMATA = "cellularAutomata",
 }
 
 /**
  * Node State for styling purposes
  */
 export enum NodeState {
-  UNVISITED = 'unvisited',
-  VISITED = 'visited',
-  WALL = 'wall',
-  START = 'start',
-  FINISH = 'finish',
-  PATH = 'path',
+  UNVISITED = "unvisited",
+  VISITED = "visited",
+  WALL = "wall",
+  START = "start",
+  FINISH = "finish",
+  PATH = "path",
 }
 
 /**
@@ -64,7 +71,9 @@ export interface AlgorithmResult {
  */
 export const GRID_ROWS = 20;
 export const GRID_COLS = 30;
-export const DEFAULT_START_ROW = 10;
-export const DEFAULT_START_COL = 5;
-export const DEFAULT_FINISH_ROW = 10;
-export const DEFAULT_FINISH_COL = 25;
+// Default Start: Top-left corner (1,1) for nice padding from edge
+export const DEFAULT_START_ROW = 1;
+export const DEFAULT_START_COL = 1;
+// Default Finish: Center of the grid (calculated dynamically)
+export const DEFAULT_FINISH_ROW = Math.floor(GRID_ROWS / 2);
+export const DEFAULT_FINISH_COL = Math.floor(GRID_COLS / 2);

@@ -262,6 +262,8 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
             color2="#f97316"
             lowerIsBetter={true}
             formatValue={formatTime}
+            unreachable1={raceStats.agent1.pathLength < 0}
+            unreachable2={raceStats.agent2.pathLength < 0}
           />
 
           <StatBar
@@ -275,6 +277,8 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({
             color1="#667eea"
             color2="#f97316"
             lowerIsBetter={true}
+            unreachable1={raceStats.agent1.pathLength < 0}
+            unreachable2={raceStats.agent2.pathLength < 0}
           />
 
           <StatBar

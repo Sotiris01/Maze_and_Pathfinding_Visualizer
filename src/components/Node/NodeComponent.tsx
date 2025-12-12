@@ -1,4 +1,5 @@
 import React, { memo } from "react";
+import { useGridContext } from "../../context/GridContext";
 import styles from "./Node.module.css";
 
 /**
@@ -40,9 +41,14 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
     onMouseUp,
     onTouchStart,
   }) => {
+    const { isHiddenTargetMode } = useGridContext();
+
     /**
      * Compute the dynamic class name based on node state
      * Priority order: Start > Finish > Path > Wall > Visited > Default
+     *
+     * Hidden Target Mode: If finish node is hidden and not yet visited,
+     * show it with a blinking animation (visible to user, hidden from algorithm)
      */
     const getNodeClassName = (): string => {
       const classNames = [styles.node];
@@ -50,7 +56,12 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
       if (isStart) {
         classNames.push(styles["node-start"]);
       } else if (isFinish) {
-        classNames.push(styles["node-finish"]);
+        // Hidden Target Mode: Show blinking animation until discovered by algorithm
+        if (isHiddenTargetMode && !isVisited) {
+          classNames.push(styles["node-finish-hidden"]);
+        } else {
+          classNames.push(styles["node-finish"]);
+        }
       } else if (isPath) {
         classNames.push(styles["node-path"]);
       } else if (isWall) {

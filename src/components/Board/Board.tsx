@@ -28,6 +28,7 @@ const Board: React.FC = () => {
     isVisualizing,
     colCount,
     rowCount,
+    isHiddenTargetMode,
   } = useGridContext();
 
   // Ref for the board container to measure available space
@@ -127,6 +128,14 @@ const Board: React.FC = () => {
 
       // Priority 2: Finish node - begin dragging
       if (node.isFinish) {
+        // Hidden Target Mode: Prevent dragging the finish node when it's hidden
+        if (isHiddenTargetMode) {
+          return; // Do nothing - user shouldn't move invisible target
+        }
+        // Hidden Target Mode: Prevent dragging the finish node when it's hidden
+        if (isHiddenTargetMode) {
+          return; // Do nothing - user shouldn't move invisible target
+        }
         isDraggingFinishRef.current = true;
         return;
       }

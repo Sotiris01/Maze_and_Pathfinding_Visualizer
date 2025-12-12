@@ -1,13 +1,4 @@
-import {
-  Node,
-  Grid,
-  GRID_ROWS,
-  GRID_COLS,
-  DEFAULT_START_ROW,
-  DEFAULT_START_COL,
-  DEFAULT_FINISH_ROW,
-  DEFAULT_FINISH_COL,
-} from '../types';
+import { Node, Grid, GRID_ROWS, GRID_COLS } from "../types";
 
 /**
  * Creates a single Node with configurable start/finish positions
@@ -34,19 +25,38 @@ export const createNode = (
 
 /**
  * Calculates safe start/finish positions based on grid dimensions
- * Ensures nodes are placed within bounds with reasonable margins
+ * Start: Top-left corner (1,1) with padding from edge
+ * Finish: Exact center of the grid
  */
 export const getSafeNodePositions = (
   rows: number,
   cols: number
-): { startRow: number; startCol: number; finishRow: number; finishCol: number } => {
-  // Start node: positioned at ~33% from top, ~10% from left
-  const startRow = Math.min(DEFAULT_START_ROW, Math.floor(rows * 0.33));
-  const startCol = Math.min(DEFAULT_START_COL, Math.max(1, Math.floor(cols * 0.1)));
+): {
+  startRow: number;
+  startCol: number;
+  finishRow: number;
+  finishCol: number;
+} => {
+  // Start node: Top-left corner with 1 cell padding from edge
+  // For very small grids (5x5), use row 1, col 1
+  const startRow = Math.min(1, rows - 2);
+  const startCol = Math.min(1, cols - 2);
 
-  // Finish node: positioned at ~33% from top, ~90% from left
-  const finishRow = Math.min(DEFAULT_FINISH_ROW, Math.floor(rows * 0.33));
-  const finishCol = Math.min(DEFAULT_FINISH_COL, Math.max(startCol + 2, Math.floor(cols * 0.9)));
+  // Finish node: Exact center of the grid
+  const finishRow = Math.floor(rows / 2);
+  const finishCol = Math.floor(cols / 2);
+
+  // Ensure start and finish don't overlap (for very small grids)
+  // If they would overlap, move finish slightly
+  if (startRow === finishRow && startCol === finishCol) {
+    // Move finish to bottom-right area for small grids
+    return {
+      startRow,
+      startCol,
+      finishRow: Math.max(startRow + 1, rows - 2),
+      finishCol: Math.max(startCol + 1, cols - 2),
+    };
+  }
 
   return { startRow, startCol, finishRow, finishCol };
 };
@@ -61,13 +71,18 @@ export const getInitialGrid = (
   rows: number = GRID_ROWS,
   cols: number = GRID_COLS
 ): Grid => {
-  const { startRow, startCol, finishRow, finishCol } = getSafeNodePositions(rows, cols);
+  const { startRow, startCol, finishRow, finishCol } = getSafeNodePositions(
+    rows,
+    cols
+  );
   const grid: Grid = [];
 
   for (let row = 0; row < rows; row++) {
     const currentRow: Node[] = [];
     for (let col = 0; col < cols; col++) {
-      currentRow.push(createNode(row, col, startRow, startCol, finishRow, finishCol));
+      currentRow.push(
+        createNode(row, col, startRow, startCol, finishRow, finishCol)
+      );
     }
     grid.push(currentRow);
   }

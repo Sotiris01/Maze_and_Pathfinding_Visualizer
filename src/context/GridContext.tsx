@@ -14,6 +14,24 @@ import {
 import { AlgorithmStats, RaceStats } from "../components/Modals/StatsModal";
 
 /**
+ * Available maze types for random selection
+ */
+const AVAILABLE_MAZE_TYPES: MazeType[] = [
+  MazeType.RECURSIVE_DIVISION,
+  MazeType.RANDOMIZED_DFS,
+  MazeType.PRIMS,
+  MazeType.SPIRAL,
+];
+
+/**
+ * Get a random maze type from available options
+ */
+const getRandomMazeType = (): MazeType => {
+  const randomIndex = Math.floor(Math.random() * AVAILABLE_MAZE_TYPES.length);
+  return AVAILABLE_MAZE_TYPES[randomIndex];
+};
+
+/**
  * Grid Context Type Definition
  */
 interface GridContextType {
@@ -47,8 +65,8 @@ interface GridContextType {
   >;
 
   // Maze Selection
-  selectedMaze: MazeType | null;
-  setSelectedMaze: React.Dispatch<React.SetStateAction<MazeType | null>>;
+  selectedMaze: MazeType;
+  setSelectedMaze: React.Dispatch<React.SetStateAction<MazeType>>;
 
   // Speed Control (delay in ms)
   animationSpeed: number;
@@ -64,6 +82,10 @@ interface GridContextType {
   toastMsg: string | null;
   showToast: (msg: string) => void;
   clearToast: () => void;
+
+  // Hidden Target Mode (Fog of War)
+  isHiddenTargetMode: boolean;
+  setIsHiddenTargetMode: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Helper Functions
   resetBoard: () => void;
@@ -90,7 +112,7 @@ const defaultContextValue: GridContextType = {
   setIsRaceMode: () => {},
   secondAlgorithm: null,
   setSecondAlgorithm: () => {},
-  selectedMaze: null,
+  selectedMaze: MazeType.RECURSIVE_DIVISION,
   setSelectedMaze: () => {},
   animationSpeed: 10,
   setAnimationSpeed: () => {},
@@ -99,6 +121,8 @@ const defaultContextValue: GridContextType = {
   toastMsg: null,
   showToast: () => {},
   clearToast: () => {},
+  isHiddenTargetMode: false,
+  setIsHiddenTargetMode: () => {},
   resetBoard: () => {},
   clearPath: () => {},
   clearAllWalls: () => {},
@@ -154,8 +178,8 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
     AlgorithmType.DIJKSTRA
   );
 
-  // Maze Selection
-  const [selectedMaze, setSelectedMaze] = useState<MazeType | null>(null);
+  // Maze Selection - initialized with random maze type for first paint experience
+  const [selectedMaze, setSelectedMaze] = useState<MazeType>(getRandomMazeType);
 
   // Race Mode State
   const [isRaceMode, setIsRaceMode] = useState<boolean>(false);
@@ -173,6 +197,9 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
 
   // Toast Notification State
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Hidden Target Mode State (Fog of War)
+  const [isHiddenTargetMode, setIsHiddenTargetMode] = useState<boolean>(false);
 
   /**
    * Shows a toast notification message
@@ -256,6 +283,8 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
     toastMsg,
     showToast,
     clearToast,
+    isHiddenTargetMode,
+    setIsHiddenTargetMode,
     resetBoard,
     clearPath,
     clearAllWalls,
