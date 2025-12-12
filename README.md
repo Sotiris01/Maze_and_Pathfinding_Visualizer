@@ -23,6 +23,12 @@ An interactive web application that visualizes pathfinding and maze generation a
 
 **👉 [Try it live on GitHub Pages!](https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/)**
 
+<p align="center">
+  <img src="QR.png" alt="QR Code - Scan to open live demo" width="200" />
+  <br />
+  <sub>📱 Scan to open on mobile</sub>
+</p>
+
 ---
 
 ## ✨ Features
