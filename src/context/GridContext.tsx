@@ -3,15 +3,26 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
 } from "react";
-import { Grid, AlgorithmType, MazeType, GRID_ROWS, GRID_COLS } from "../types";
+import {
+  Grid,
+  AlgorithmType,
+  MazeType,
+  RunRecord,
+  GRID_ROWS,
+  GRID_COLS,
+} from "../types";
 import {
   getInitialGrid,
   resetGridForPathfinding,
   clearWalls,
 } from "../utils/gridUtils";
 import { AlgorithmStats, RaceStats } from "../components/Modals/StatsModal";
+
+const HISTORY_STORAGE_KEY = "pathfinder_run_history";
+const MAX_HISTORY_ITEMS = 50;
 
 /**
  * Available maze types for random selection
@@ -87,6 +98,12 @@ interface GridContextType {
   isHiddenTargetMode: boolean;
   setIsHiddenTargetMode: React.Dispatch<React.SetStateAction<boolean>>;
 
+  // Run History
+  runHistory: RunRecord[];
+  addRunRecord: (record: Omit<RunRecord, "id" | "timestamp" | "date">) => void;
+  clearRunHistory: () => void;
+  deleteRunRecord: (id: string) => void;
+
   // Helper Functions
   resetBoard: () => void;
   clearPath: () => void;
@@ -123,6 +140,10 @@ const defaultContextValue: GridContextType = {
   clearToast: () => {},
   isHiddenTargetMode: false,
   setIsHiddenTargetMode: () => {},
+  runHistory: [],
+  addRunRecord: () => {},
+  clearRunHistory: () => {},
+  deleteRunRecord: () => {},
   resetBoard: () => {},
   clearPath: () => {},
   clearAllWalls: () => {},
@@ -201,6 +222,29 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
   // Hidden Target Mode State (Fog of War)
   const [isHiddenTargetMode, setIsHiddenTargetMode] = useState<boolean>(false);
 
+  // Run History State with localStorage persistence
+  const [runHistory, setRunHistory] = useState<RunRecord[]>(() => {
+    try {
+      const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored) as RunRecord[];
+      }
+    } catch (error) {
+      console.error("Failed to load history from localStorage:", error);
+      localStorage.removeItem(HISTORY_STORAGE_KEY);
+    }
+    return [];
+  });
+
+  // Persist history to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(runHistory));
+    } catch (error) {
+      console.error("Failed to save history to localStorage:", error);
+    }
+  }, [runHistory]);
+
   /**
    * Shows a toast notification message
    */
@@ -213,6 +257,39 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
    */
   const clearToast = useCallback((): void => {
     setToastMsg(null);
+  }, []);
+
+  /**
+   * Adds a new run record to history
+   */
+  const addRunRecord = useCallback(
+    (record: Omit<RunRecord, "id" | "timestamp" | "date">): void => {
+      const newRecord: RunRecord = {
+        ...record,
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+        date: new Date().toISOString(),
+      };
+      setRunHistory((prev) => {
+        const updated = [newRecord, ...prev];
+        return updated.slice(0, MAX_HISTORY_ITEMS);
+      });
+    },
+    []
+  );
+
+  /**
+   * Clears all run history
+   */
+  const clearRunHistory = useCallback((): void => {
+    setRunHistory([]);
+  }, []);
+
+  /**
+   * Deletes a single run record by ID
+   */
+  const deleteRunRecord = useCallback((id: string): void => {
+    setRunHistory((prev) => prev.filter((record) => record.id !== id));
   }, []);
 
   /**
@@ -285,6 +362,10 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
     clearToast,
     isHiddenTargetMode,
     setIsHiddenTargetMode,
+    runHistory,
+    addRunRecord,
+    clearRunHistory,
+    deleteRunRecord,
     resetBoard,
     clearPath,
     clearAllWalls,

@@ -1,0 +1,358 @@
+/**
+ * HistorySection Styles
+ * Glassmorphism design matching StatisticsSection
+ */
+
+.section {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+  padding: 20px 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* === Header === */
+.header {
+  text-align: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.headerBadge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.15);
+  padding: 4px 12px;
+  border-radius: 12px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #f1f5f9;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* === Empty State === */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.emptyIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.historyIcon {
+  font-size: 3rem;
+  z-index: 1;
+  filter: grayscale(0.3);
+}
+
+.pulseRing {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid rgba(167, 139, 250, 0.3);
+  animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.emptyTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.emptyText {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* === Action Bar === */
+.actionBar {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.clearButton {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearButton:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* === Table === */
+.tableWrapper {
+  flex: 1;
+  overflow: auto;
+  background: rgba(30, 27, 75, 0.6);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  min-width: 800px;
+}
+
+.table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(49, 46, 129, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #c4b5fd;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.2);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 10px 16px;
+  color: #e2e8f0;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.1);
+}
+
+.row:hover {
+  background: rgba(167, 139, 250, 0.08);
+}
+
+/* === Cell Styles === */
+.dateCell {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.modeBadge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.singleBadge {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.raceBadge {
+  background: rgba(249, 115, 22, 0.2);
+  color: #fdba74;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.algoCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.algo1 {
+  color: #22d3ee;
+  font-weight: 500;
+}
+
+.algo2 {
+  color: #f472b6;
+  font-weight: 500;
+}
+
+.vs {
+  color: #64748b;
+  font-size: 0.7rem;
+  font-style: italic;
+}
+
+.gridCell {
+  color: #94a3b8;
+  font-family: "SF Mono", "Consolas", monospace;
+  font-size: 0.8rem;
+}
+
+.timeCell,
+.pathCell,
+.visitedCell {
+  font-family: "SF Mono", "Consolas", monospace;
+  font-size: 0.8rem;
+}
+
+.secondTime,
+.secondPath,
+.secondVisited {
+  color: #94a3b8;
+  margin-left: 2px;
+}
+
+.resultCell {
+  white-space: nowrap;
+}
+
+.winner {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.winner.tie {
+  color: #94a3b8;
+}
+
+.winner.failed {
+  color: #f87171;
+}
+
+.success {
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.noPath {
+  color: #f87171;
+  font-weight: 500;
+}
+
+.deleteCell {
+  width: 40px;
+  text-align: center;
+}
+
+.deleteButton {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.deleteButton:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* === Scroll Hint === */
+.scrollHint {
+  display: none;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748b;
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+
+/* === Responsive === */
+@media (max-width: 900px) {
+  .section {
+    padding: 16px;
+  }
+
+  .scrollHint {
+    display: block;
+  }
+
+  .table {
+    font-size: 0.8rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding: 8px 0;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  .actionBar {
+    justify-content: center;
+  }
+
+  .clearButton {
+    width: 100%;
+    text-align: center;
+  }
+}

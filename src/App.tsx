@@ -15,10 +15,13 @@ import { useVisualization } from "./hooks/useVisualization";
 import { MazeType } from "./types";
 import styles from "./App.module.css";
 
-// Lazy load the Statistics section to reduce initial bundle size
-// This component is below the fold and not needed for initial render
+// Lazy load the Statistics and History sections to reduce initial bundle size
+// These components are below the fold and not needed for initial render
 const StatisticsSection = lazy(
   () => import("./components/Statistics/StatisticsSection")
+);
+const HistorySection = lazy(
+  () => import("./components/History/HistorySection")
 );
 
 /**
@@ -40,6 +43,12 @@ const MainContent: React.FC = () => {
     setVisualizationStats,
     showToast,
     selectedMaze,
+    runHistory,
+    clearRunHistory,
+    deleteRunRecord,
+    addRunRecord,
+    rowCount,
+    colCount,
   } = useGridContext();
 
   const {
@@ -97,6 +106,8 @@ const MainContent: React.FC = () => {
     setVisualizationStats,
     scrollToStats,
     showToast,
+    addRunRecord,
+    gridSize: `${rowCount}x${colCount}`,
   };
 
   // Handler for visualize button (single algorithm)
@@ -228,6 +239,21 @@ const MainContent: React.FC = () => {
           <StatisticsSection
             stats={visualizationStats}
             isRaceMode={isRaceMode}
+          />
+        </Suspense>
+      </div>
+
+      {/* Section 3: Run History */}
+      <div className={styles.snapSection}>
+        <Suspense
+          fallback={
+            <div className={styles.statsLoading}>Loading History...</div>
+          }
+        >
+          <HistorySection
+            history={runHistory}
+            onClearHistory={clearRunHistory}
+            onDeleteRecord={deleteRunRecord}
           />
         </Suspense>
       </div>

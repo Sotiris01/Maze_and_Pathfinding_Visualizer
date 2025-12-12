@@ -53,6 +53,7 @@ import { getCellularAutomataMaze } from "../algorithms/maze/cellularAutomata";
 import { resetGridForPathfinding, clearWalls } from "../utils/gridUtils";
 import { AlgorithmStats, RaceStats } from "../components/Modals/StatsModal";
 import { useBenchmarking } from "./useBenchmarking";
+import { RunRecord } from "../types";
 
 /**
  * Callbacks for stats and scroll behavior
@@ -63,6 +64,8 @@ interface StatsCallbacks {
   >;
   scrollToStats: () => void;
   showToast?: (msg: string) => void;
+  addRunRecord?: (record: Omit<RunRecord, "id" | "timestamp" | "date">) => void;
+  gridSize?: string; // e.g., "20x30"
 }
 
 /**
@@ -446,6 +449,17 @@ export const useVisualization = (): UseVisualizationReturn => {
 
           if (statsCallbacks) {
             statsCallbacks.setVisualizationStats(stats);
+            // Add to run history
+            if (statsCallbacks.addRunRecord && statsCallbacks.gridSize) {
+              statsCallbacks.addRunRecord({
+                mode: "Single",
+                algorithm1: stats.algorithm,
+                gridSize: statsCallbacks.gridSize,
+                time1: stats.executionTime,
+                pathLength1: stats.pathLength,
+                visitedCount1: stats.visitedCount,
+              });
+            }
             if (statsCallbacks.showToast) {
               statsCallbacks.showToast(
                 "Target is unreachable! No path exists."
@@ -466,6 +480,17 @@ export const useVisualization = (): UseVisualizationReturn => {
 
             if (statsCallbacks) {
               statsCallbacks.setVisualizationStats(stats);
+              // Add to run history
+              if (statsCallbacks.addRunRecord && statsCallbacks.gridSize) {
+                statsCallbacks.addRunRecord({
+                  mode: "Single",
+                  algorithm1: stats.algorithm,
+                  gridSize: statsCallbacks.gridSize,
+                  time1: stats.executionTime,
+                  pathLength1: stats.pathLength,
+                  visitedCount1: stats.visitedCount,
+                });
+              }
               setTimeout(() => {
                 statsCallbacks.scrollToStats();
               }, 500);
@@ -961,6 +986,33 @@ export const useVisualization = (): UseVisualizationReturn => {
                     // Update stats and scroll to statistics section
                     if (statsCallbacks) {
                       statsCallbacks.setVisualizationStats(raceStats);
+                      // Add to run history
+                      if (
+                        statsCallbacks.addRunRecord &&
+                        statsCallbacks.gridSize
+                      ) {
+                        const winnerName =
+                          raceStats.winner === "agent1"
+                            ? raceStats.agent1.algorithm
+                            : raceStats.winner === "agent2"
+                            ? raceStats.agent2.algorithm
+                            : raceStats.winner === "tie"
+                            ? "Tie"
+                            : "Both Failed";
+                        statsCallbacks.addRunRecord({
+                          mode: "Race",
+                          algorithm1: raceStats.agent1.algorithm,
+                          algorithm2: raceStats.agent2.algorithm,
+                          gridSize: statsCallbacks.gridSize,
+                          time1: raceStats.agent1.executionTime,
+                          pathLength1: raceStats.agent1.pathLength,
+                          visitedCount1: raceStats.agent1.visitedCount,
+                          time2: raceStats.agent2.executionTime,
+                          pathLength2: raceStats.agent2.pathLength,
+                          visitedCount2: raceStats.agent2.visitedCount,
+                          winner: winnerName,
+                        });
+                      }
                       setTimeout(() => {
                         statsCallbacks.scrollToStats();
                       }, 500);
@@ -979,6 +1031,30 @@ export const useVisualization = (): UseVisualizationReturn => {
                 // Update stats and scroll even if no paths found
                 if (statsCallbacks) {
                   statsCallbacks.setVisualizationStats(raceStats);
+                  // Add to run history
+                  if (statsCallbacks.addRunRecord && statsCallbacks.gridSize) {
+                    const winnerName =
+                      raceStats.winner === "agent1"
+                        ? raceStats.agent1.algorithm
+                        : raceStats.winner === "agent2"
+                        ? raceStats.agent2.algorithm
+                        : raceStats.winner === "tie"
+                        ? "Tie"
+                        : "Both Failed";
+                    statsCallbacks.addRunRecord({
+                      mode: "Race",
+                      algorithm1: raceStats.agent1.algorithm,
+                      algorithm2: raceStats.agent2.algorithm,
+                      gridSize: statsCallbacks.gridSize,
+                      time1: raceStats.agent1.executionTime,
+                      pathLength1: raceStats.agent1.pathLength,
+                      visitedCount1: raceStats.agent1.visitedCount,
+                      time2: raceStats.agent2.executionTime,
+                      pathLength2: raceStats.agent2.pathLength,
+                      visitedCount2: raceStats.agent2.visitedCount,
+                      winner: winnerName,
+                    });
+                  }
                   // Show toast if neither algorithm found a path
                   if (!path1Found && !path2Found && statsCallbacks.showToast) {
                     statsCallbacks.showToast(
@@ -1007,6 +1083,30 @@ export const useVisualization = (): UseVisualizationReturn => {
         // Update stats and scroll even if nothing was visited
         if (statsCallbacks) {
           statsCallbacks.setVisualizationStats(raceStats);
+          // Add to run history
+          if (statsCallbacks.addRunRecord && statsCallbacks.gridSize) {
+            const winnerName =
+              raceStats.winner === "agent1"
+                ? raceStats.agent1.algorithm
+                : raceStats.winner === "agent2"
+                ? raceStats.agent2.algorithm
+                : raceStats.winner === "tie"
+                ? "Tie"
+                : "Both Failed";
+            statsCallbacks.addRunRecord({
+              mode: "Race",
+              algorithm1: raceStats.agent1.algorithm,
+              algorithm2: raceStats.agent2.algorithm,
+              gridSize: statsCallbacks.gridSize,
+              time1: raceStats.agent1.executionTime,
+              pathLength1: raceStats.agent1.pathLength,
+              visitedCount1: raceStats.agent1.visitedCount,
+              time2: raceStats.agent2.executionTime,
+              pathLength2: raceStats.agent2.pathLength,
+              visitedCount2: raceStats.agent2.visitedCount,
+              winner: winnerName,
+            });
+          }
           setTimeout(() => {
             statsCallbacks.scrollToStats();
           }, 500);

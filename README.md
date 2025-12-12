@@ -29,19 +29,26 @@ An interactive web application that visualizes pathfinding and maze generation a
 
 ### 🤖 Pathfinding Algorithms
 
-| Algorithm      | Description                                        | Guarantees Shortest Path |
-| -------------- | -------------------------------------------------- | :----------------------: |
-| **Dijkstra's** | Classic algorithm exploring nodes by distance      |          ✅ Yes          |
-| **A\* Search** | Informed search using Manhattan distance heuristic |          ✅ Yes          |
-| **BFS**        | Breadth-First Search - layer by layer exploration  |   ✅ Yes (unweighted)    |
-| **DFS**        | Depth-First Search - explores deep before wide     |          ❌ No           |
+| Algorithm             | Description                                      | Guarantees Shortest Path |
+| --------------------- | ------------------------------------------------ | :----------------------: |
+| **Dijkstra's**        | Classic algorithm exploring nodes by distance    |          ✅ Yes          |
+| **A\* Search**        | Informed search using Manhattan distance         |          ✅ Yes          |
+| **Greedy Best-First** | Heuristic-only (faster, not always optimal)      |          ❌ No           |
+| **Bidirectional BFS** | Searches from both start & finish simultaneously |   ✅ Yes (unweighted)    |
+| **Bidirectional A\*** | Bidirectional search with A\* heuristics         |          ✅ Yes          |
+| **Jump Point Search** | Optimized A\* (10-100x faster in open spaces)    |          ✅ Yes          |
+| **BFS**               | Breadth-First Search - layer by layer            |   ✅ Yes (unweighted)    |
+| **DFS**               | Depth-First Search - explores deep before wide   |          ❌ No           |
 
 ### 🧩 Maze Generation
 
-| Algorithm              | Style      | Description                                      |
-| ---------------------- | ---------- | ------------------------------------------------ |
-| **Recursive Division** | Structured | Creates chambers with connecting passages        |
-| **Randomized DFS**     | Organic    | Recursive Backtracker - winding, cave-like paths |
+| Algorithm              | Style      | Description                                   |
+| ---------------------- | ---------- | --------------------------------------------- |
+| **Recursive Division** | Structured | Creates chambers with connecting passages     |
+| **Randomized DFS**     | Organic    | Recursive Backtracker - winding, cave-like    |
+| **Prim's Algorithm**   | Organic    | Randomized MST - creates smooth cave patterns |
+| **Spiral Maze**        | Geometric  | Concentric rings from outside to inside       |
+| **Cellular Automata**  | Organic    | Game of Life-inspired chaotic cave generation |
 
 ### 🏁 Race Mode
 
@@ -64,17 +71,30 @@ Compare two algorithms side-by-side! Watch them compete to find the path first w
 
 After each visualization, view detailed metrics:
 
-- Execution time (milliseconds)
+- Execution time (microseconds with scientific precision)
 - Nodes visited count
 - Final path length
 - Side-by-side comparison in Race Mode
-- **Unreachable target detection** - Shows "Unreachable" when no path exists
+- **Unreachable target detection** - Shows "Unreachable" with warning
+- **Web Worker Benchmarking** - Scientific timing isolated from UI thread
+- **Industrial-grade precision** - Adaptive sampling with JIT warm-up iterations
+
+### 🧠 Advanced Features
+
+- **🕵️ Hidden Target Mode** - Fog of war: target hidden until discovered by algorithm
+- **🔄 Dynamic Algorithm Filtering** - Heuristic algorithms disabled in Hidden Mode
+- **📋 Run History (Page 3)** - Persistent record of all past runs with localStorage
+  - Displays execution time, path length, visited count
+  - Track winners in Race Mode
+  - Delete individual records or clear all history
+  - Three-page scroll-snap navigation
 
 ### ⚠️ Edge Case Handling
 
 - **Toast Notifications** - Slide-up alerts for path failures
 - **Graceful Degradation** - Statistics display "Unreachable" with red indicator
 - **Race Mode Support** - Handles cases where one or both algorithms fail
+- **One-Algorithm Success** - Shows winner by default if only one finds path
 
 ### 🎨 Modern UI
 
@@ -172,38 +192,52 @@ npm run deploy
 src/
 ├── algorithms/
 │   ├── pathfinding/
-│   │   ├── dijkstra.ts          # Dijkstra's algorithm
-│   │   ├── astar.ts             # A* with Manhattan heuristic
-│   │   ├── bfs.ts               # Breadth-First Search
-│   │   └── dfs.ts               # Depth-First Search
+│   │   ├── dijkstra.ts              # Dijkstra's algorithm
+│   │   ├── astar.ts                 # A* with Manhattan heuristic
+│   │   ├── greedyBestFirst.ts       # Greedy Best-First (heuristic-only)
+│   │   ├── bidirectionalBFS.ts      # Bidirectional BFS (Swarm)
+│   │   ├── bidirectionalAStar.ts    # Bidirectional A*
+│   │   ├── jumpPointSearch.ts       # Jump Point Search (JPS)
+│   │   ├── bfs.ts                   # Breadth-First Search
+│   │   └── dfs.ts                   # Depth-First Search
 │   └── maze/
-│       ├── recursiveDivision.ts # Recursive Division maze
-│       └── randomizedDFS.ts     # Randomized DFS (Backtracker)
+│       ├── recursiveDivision.ts     # Recursive Division maze
+│       ├── randomizedDFS.ts         # Randomized DFS (Backtracker)
+│       ├── prims.ts                 # Prim's algorithm (MST-based)
+│       ├── spiralMaze.ts            # Spiral pattern maze
+│       └── cellularAutomata.ts      # Game of Life-inspired maze
 ├── components/
-│   ├── Board/                   # Grid renderer with CSS Grid + touch support
-│   ├── Node/                    # Individual cell with React.memo optimization
-│   ├── Controls/                # Accordion-based sidebar
-│   │   ├── Accordion.tsx        # Reusable collapsible section
-│   │   └── ControlPanel.tsx     # Main control panel (3 sections)
-│   ├── Legend/                  # Color legend component
-│   ├── Statistics/              # Full-page analytics dashboard
-│   │   ├── StatBar.tsx          # Animated comparison progress bars
-│   │   └── StatisticsSection.tsx # Metrics grid with IntersectionObserver
+│   ├── Board/                       # Grid renderer with CSS Grid + touch support
+│   ├── Node/                        # Individual cell with React.memo optimization
+│   ├── Controls/                    # Accordion-based sidebar
+│   │   ├── Accordion.tsx            # Reusable collapsible section
+│   │   └── ControlPanel.tsx         # Main control panel (3 sections)
+│   ├── Legend/                      # Color legend component
+│   ├── History/                     # Run history page (Phase F)
+│   │   ├── HistorySection.tsx       # Run history table
+│   │   └── HistorySection.module.css# History styling
+│   ├── Statistics/                  # Full-page analytics dashboard
+│   │   ├── StatBar.tsx              # Animated comparison progress bars
+│   │   └── StatisticsSection.tsx    # Metrics grid with IntersectionObserver
 │   └── UI/
-│       └── Toast.tsx            # Slide-up notification component
+│       └── Toast.tsx                # Slide-up notification component
 ├── context/
-│   └── GridContext.tsx          # Global state + toast management
+│   └── GridContext.tsx              # Global state + history management
 ├── hooks/
-│   └── useVisualization.ts      # Animation system + auto-scroll
+│   ├── useBenchmarking.ts           # Web Worker benchmarking hook
+│   ├── useHistory.ts                # History localStorage hook
+│   └── useVisualization.ts          # Animation system + history recording
 ├── types/
-│   └── index.ts                 # TypeScript interfaces
+│   └── index.ts                     # TypeScript interfaces + RunRecord
 ├── styles/
-│   └── variables.css            # CSS variables + global animations
-└── utils/
-    └── gridUtils.ts             # Grid helper functions
+│   └── variables.css                # CSS variables + global animations
+├── utils/
+│   └── gridUtils.ts                 # Grid helper functions
+└── workers/
+    └── benchmark.worker.ts          # Isolated timing Web Worker
 ```
 
-**📊 Codebase Stats:** ~5,700 lines of code across 39 files
+**📊 Codebase Stats:** ~10,572 lines of code across 53 files
 
 ---
 
@@ -225,6 +259,46 @@ An informed search algorithm combining Dijkstra with a heuristic (Manhattan dist
 ```
 Time Complexity: O(E) - depends on heuristic quality
 Space Complexity: O(V)
+```
+
+### Greedy Best-First Search
+
+Heuristic-only search using only Manhattan distance (no actual cost). Faster than A\* but **does not** guarantee shortest path.
+
+```
+Time Complexity: O(V + E)
+Space Complexity: O(V)
+Note: May not find optimal path, explores fewer nodes
+```
+
+### Bidirectional BFS
+
+Searches simultaneously from both start and finish, meeting in the middle. Explores roughly half the search space.
+
+```
+Time Complexity: O(V + E)
+Space Complexity: O(V)
+Advantage: ~2x faster than unidirectional BFS
+```
+
+### Bidirectional A\*
+
+Combines A\* heuristics with bidirectional search. Each direction uses heuristic pointing to opposite end.
+
+```
+Time Complexity: O(E) - depends on heuristic quality
+Space Complexity: O(V)
+Advantage: ~2x faster than unidirectional A\*
+```
+
+### Jump Point Search (JPS)
+
+Optimized A\* for uniform-cost grids. "Jumps" over intermediate nodes by examining only forced neighbors.
+
+```
+Time Complexity: O(E) - typically 10-100x faster in open spaces
+Space Complexity: O(V)
+Guarantee: Shortest path like A\*, not faster on dense mazes
 ```
 
 ### Breadth-First Search (BFS)
@@ -277,17 +351,19 @@ Space Complexity: O(V)
 ## 🔧 Performance Optimizations
 
 - **React.memo** with custom `arePropsEqual` comparator skips function reference checks
-- **React.lazy() + Suspense** for below-fold StatisticsSection lazy loading
+- **React.lazy() + Suspense** for below-fold StatisticsSection & HistorySection lazy loading
 - **Vite manual chunk splitting:**
   - `vendor-react` (141KB gzip: 45KB) - React core, cached separately
-  - `algorithms` (5KB gzip: 1.7KB) - Pathfinding algorithms
-  - `statistics` (11KB gzip: 3.4KB) - Lazy-loaded dashboard
+  - `algorithms` (17KB gzip: 5KB) - All 13 pathfinding/maze algorithms
+  - `statistics` (11KB gzip: 3.4KB) - Lazy-loaded analytics dashboard
+  - `history` (5.5KB gzip: 2KB) - Lazy-loaded history page
 - **esbuild minification** with automatic console/debugger removal
+- **Web Worker Benchmarking** - Scientific timing isolated from UI thread with JIT warm-up
 - **Direct DOM manipulation** for animations bypasses React's reconciliation
 - **useRef** for animation state prevents stale closures in callbacks
 - **CSS Grid** for efficient grid layout rendering
 - **ResizeObserver** for dynamic, responsive node sizing
-- **CSS Scroll Snap** for smooth two-page navigation
+- **CSS Scroll Snap** for smooth three-page navigation
 
 ---
 
@@ -297,8 +373,8 @@ Space Complexity: O(V)
 - [x] **Phase B:** Dijkstra's algorithm with animation system
 - [x] **Phase C:** Maze generation (Recursive Division, Randomized DFS)
 - [x] **Phase D:** A\*, BFS, DFS algorithms + Race Mode
-- [x] **Phase E:** Statistics dashboard, Legend, Accordion UI, Toast notifications
-- [x] **Phase F:** Responsive mobile layout, Performance optimization, GitHub Pages deployment
+- [x] **Phase E:** Statistics dashboard, Legend, Accordion UI, Toast notifications, Responsive mobile
+- [x] **Phase F:** 6 new algorithms, Hidden Target Mode, Web Worker Benchmarking, Run History, GitHub Pages deployment
 
 ---
 

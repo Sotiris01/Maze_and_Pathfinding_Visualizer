@@ -67,6 +67,29 @@ export interface AlgorithmResult {
 }
 
 /**
+ * Run Record - stored in localStorage for history tracking
+ */
+export interface RunRecord {
+  id: string; // UUID
+  timestamp: number; // Unix timestamp for sorting
+  date: string; // ISO format for display
+  mode: "Single" | "Race";
+  algorithm1: string; // Display name of algorithm 1
+  algorithm2?: string; // Display name of algorithm 2 (Race mode only)
+  gridSize: string; // e.g., "20x30"
+  // Algorithm 1 stats
+  time1: number; // Execution time in ms
+  pathLength1: number;
+  visitedCount1: number;
+  // Algorithm 2 stats (Race mode only)
+  time2?: number;
+  pathLength2?: number;
+  visitedCount2?: number;
+  // Race mode result
+  winner?: string; // "Algorithm 1 Name" | "Algorithm 2 Name" | "Tie" | "Both Failed"
+}
+
+/**
  * Grid Configuration Constants
  */
 export const GRID_ROWS = 20;

@@ -7,8 +7,8 @@
 | **Project Name**  | Maze & Pathfinding Visualizer                                               |
 | **Type**          | Web Application (SPA)                                                       |
 | **Tech Stack**    | React 18, TypeScript 5, Vite 5, CSS Modules, Web Workers                    |
-| **Current Phase** | **Phase F: Extensions & History** (In Progress)                             |
-| **Progress**      | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D ✅ → Phase E ✅ → Phase F 🔄 |
+| **Current Phase** | **Phase F: Extensions & History** ✅ COMPLETE                               |
+| **Progress**      | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D ✅ → Phase E ✅ → Phase F ✅ |
 | **Server**        | ✅ Live at https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/     |
 | **Default Grid**  | 20 rows × 30 columns (600 nodes)                                            |
 | **Repository**    | https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer                |
@@ -102,7 +102,7 @@
   - `npm run deploy` pushes dist folder to gh-pages branch
   - Live at: https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/
 
-### Phase F: Extensions & History 🔄 IN PROGRESS
+### Phase F: Extensions & History ✅ COMPLETE
 
 - [x] **Hidden Target Mode (Fog of War)**
   - Toggle Button "🕵️ Hidden Target" in Control Panel
@@ -174,14 +174,16 @@
   - Finish Node: Exact center of grid (rows/2, cols/2)
   - Positions reset automatically when grid dimensions change via resizeGrid
   - Safe bounds checking for edge cases (small grids)
-- [ ] **Run History Section (Page 3)**
-  - Create a 3rd Scroll-Snap Section below Statistics
-  - Implement `HistorySection` component with glassmorphism design
-  - Store past runs (Algorithm, Time, Cost, Result, Timestamp) in `localStorage`
-  - Display history in a sortable table with filters
-  - "Replay" button to restore and re-run previous configurations
-  - "Export" functionality to save history as JSON
-  - "Clear History" with confirmation modal
+- [x] **Run History Section (Page 3)**
+  - 3rd Scroll-Snap Section below Statistics
+  - `HistorySection` component with glassmorphism design (purple gradient theme)
+  - `RunRecord` interface in `types/index.ts` with full run metadata
+  - localStorage persistence via GridContext (max 50 records)
+  - Records Single mode and Race mode with winner tracking
+  - Displays: Date, Mode badge, Algorithm(s), Grid Size, Time, Path, Visited, Result
+  - Delete individual records or clear all history
+  - Empty state with animated pulse ring
+  - Responsive table with horizontal scroll on mobile
 
 ---
 
@@ -256,7 +258,7 @@
 
 ```
 src/
-├── App.tsx                              (223 lines) - Main app with lazy loading + Suspense
+├── App.tsx                              (275 lines) - Main app with 3 scroll-snap sections
 ├── App.module.css                       (301 lines) - Responsive layout + stats loading fallback
 ├── main.tsx                             (14 lines) - React entry point
 ├── vite-env.d.ts                        (27 lines) - Vite type declarations
@@ -288,6 +290,9 @@ vite.config.ts                           (60 lines) - Build config with manual c
 │   │   ├── ControlPanel.tsx             (458 lines) - Sidebar with accordion groups
 │   │   ├── ControlPanel.module.css      (413 lines) - Professional dark theme styles
 │   │   └── index.ts                     (1 line) - Barrel export
+│   ├── History/
+│   │   ├── HistorySection.tsx           (199 lines) - Run history page component
+│   │   └── HistorySection.module.css    (281 lines) - Glassmorphism table styling
 │   ├── Legend/
 │   │   ├── Legend.tsx                   (67 lines) - Color legend component
 │   │   ├── Legend.module.css            (97 lines) - Legend styles
@@ -311,14 +316,15 @@ vite.config.ts                           (60 lines) - Build config with manual c
 │       ├── Toast.tsx                    (80 lines) - Toast notification component
 │       └── Toast.module.css             (71 lines) - Slide-up animation styles
 ├── context/
-│   └── GridContext.tsx                  (255 lines) - Global state + toast management
+│   └── GridContext.tsx                  (372 lines) - Global state + history management
 ├── hooks/
 │   ├── useBenchmarking.ts               (196 lines) - Web Worker benchmark hook
-│   └── useVisualization.ts              (929 lines) - Animation system + auto-scroll
+│   ├── useHistory.ts                    (86 lines) - History localStorage hook (deprecated)
+│   └── useVisualization.ts              (1135 lines) - Animation system + history recording
 ├── styles/
 │   └── variables.css                    (383 lines) - CSS variables + global animations
 ├── types/
-│   └── index.ts                         (73 lines) - TypeScript interfaces
+│   └── index.ts                         (95 lines) - TypeScript interfaces + RunRecord
 ├── utils/
 │   ├── gridUtils.ts                     (305 lines) - Grid helper functions
 │   └── pathUtils.ts                     (10 lines) - Path utilities (placeholder)
@@ -326,7 +332,7 @@ vite.config.ts                           (60 lines) - Build config with manual c
     └── benchmark.worker.ts              (200 lines) - Isolated timing Web Worker
 ```
 
-**Total: 49 files, ~9,596 lines of code**
+**Total: 53 files, ~10,572 lines of code**
 
 ---
 
@@ -334,17 +340,17 @@ vite.config.ts                           (60 lines) - Build config with manual c
 
 | Category   | Files  | Lines of Code |
 | ---------- | ------ | ------------- |
-| App Core   | 4      | 565           |
+| App Core   | 4      | 617           |
 | Config     | 1      | 60            |
-| Components | 22     | 3,123         |
+| Components | 24     | 3,603         |
 | Algorithms | 13     | 2,493         |
-| Context    | 1      | 255           |
-| Hooks      | 2      | 1,125         |
+| Context    | 1      | 372           |
+| Hooks      | 3      | 1,417         |
 | Styles     | 1      | 383           |
-| Types      | 1      | 73            |
+| Types      | 1      | 95            |
 | Utils      | 2      | 315           |
 | Workers    | 1      | 200           |
-| **Total**  | **49** | **~9,596**    |
+| **Total**  | **53** | **~10,572**   |
 
 ---
 
