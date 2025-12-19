@@ -6,36 +6,36 @@
 /* CSS Custom Properties */
 :root {
   /* Node Colors */
-  --color-unvisited: #ffffff;
+  --color-unvisited: #f5f0e6;
   --color-wall: #34495e;
   --color-start: #4caf50;
   --color-finish: #fc0000;
-  
+
   /* Animation Colors */
   --color-visited-start: #00bcd4;
   --color-visited-end: #9c27b0;
   --color-path: #ffeb3b;
-  
+
   /* Multi-Agent Colors */
   --color-agent-a: #2196f3;
   --color-agent-b: #ff9800;
-  
+
   /* Agent 2 Animation Colors (Race Mode) */
   --color-visited-second-start: #ff9800;
   --color-visited-second-end: #f44336;
   --color-path-second: #00e5ff;
   --color-visited-overlap: #8b0000;
-  
+
   /* UI Colors */
   --color-primary: #667eea;
   --color-secondary: #764ba2;
   --color-background: #f5f7fa;
   --color-text: #2c3e50;
   --color-border: #b8c6db;
-  
+
   /* Node Sizing */
   --node-size: 25px;
-  
+
   /* Grid Configuration */
   --grid-rows: 30;
   --grid-cols: 50;
@@ -57,7 +57,7 @@ html {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--color-background);
   color: var(--color-text);
   line-height: 1.5;
@@ -89,7 +89,8 @@ button {
 }
 
 /* Remove default list styles */
-ul, ol {
+ul,
+ol {
   list-style: none;
 }
 
@@ -111,56 +112,64 @@ html {
 
 @keyframes visitedAnimation {
   0% {
-    background-color: var(--color-visited-start);
     transform: scale(0.3);
     border-radius: 50%;
+    filter: brightness(1.8) saturate(1.3);
+    box-shadow: 0 0 8px 2px rgba(33, 150, 243, 0.9);
   }
   25% {
-    background-color: #26c6da;
     transform: scale(0.6);
     border-radius: 50%;
+    filter: brightness(1.5) saturate(1.2);
+    box-shadow: 0 0 6px 2px rgba(33, 150, 243, 0.7);
   }
   50% {
-    background-color: #7b1fa2;
     transform: scale(1.2);
     border-radius: 25%;
+    filter: brightness(1.3) saturate(1.1);
+    box-shadow: 0 0 5px 1px rgba(21, 101, 192, 0.6);
   }
   75% {
     transform: scale(1.05);
     border-radius: 0;
   }
   100% {
-    background-color: var(--color-visited-end);
     transform: scale(1);
     border-radius: 0;
+    filter: brightness(1.2) saturate(1.1);
+    box-shadow: 0 0 4px 1px rgba(21, 101, 192, 1);
   }
 }
 
 /* Shortest Path Animation - Applied via JavaScript */
 .node-path {
   animation: pathAnimation 1s ease-out forwards;
-  background-color: var(--color-path) !important;
+  background-color: rgba(21, 101, 192, 0.3);
+  box-shadow: inset 0 0 0 4px rgba(13, 71, 161, 1);
 }
 
 @keyframes pathAnimation {
   0% {
-    background-color: var(--color-path);
+    background-color: rgba(33, 150, 243, 0.4);
+    box-shadow: inset 0 0 0 4px rgba(13, 71, 161, 1);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 10px var(--color-path);
+    box-shadow: inset 0 0 0 5px rgba(13, 71, 161, 1),
+      0 0 10px rgba(33, 150, 243, 0.6);
   }
   100% {
-    background-color: var(--color-path);
+    background-color: rgba(21, 101, 192, 0.3);
+    box-shadow: inset 0 0 0 4px rgba(13, 71, 161, 0.95),
+      0 0 5px rgba(33, 150, 243, 0.4);
     transform: scale(1);
-    box-shadow: 0 0 5px var(--color-path);
   }
 }
 
 /* ===========================================
    Agent 2 Animation Classes (Race Mode)
-   Orange -> Red (Visited), Cyan (Path)
+   Yellow (Visited), Super-Yellow (Path)
    =========================================== */
 
 /* Visited Node Animation - Agent 2 */
@@ -170,73 +179,84 @@ html {
 
 @keyframes visitedAnimationSecond {
   0% {
-    background-color: var(--color-visited-second-start);
     transform: scale(0.3);
     border-radius: 50%;
+    filter: brightness(1.8) saturate(1.4);
+    box-shadow: 0 0 8px 2px rgba(255, 235, 59, 0.9);
   }
   25% {
-    background-color: #ffb74d;
     transform: scale(0.6);
     border-radius: 50%;
+    filter: brightness(1.5) saturate(1.3);
+    box-shadow: 0 0 6px 2px rgba(255, 235, 59, 0.7);
   }
   50% {
-    background-color: #e53935;
     transform: scale(1.2);
     border-radius: 25%;
+    filter: brightness(1.3) saturate(1.2);
+    box-shadow: 0 0 5px 1px rgba(249, 168, 37, 0.6);
   }
   75% {
     transform: scale(1.05);
     border-radius: 0;
   }
   100% {
-    background-color: var(--color-visited-second-end);
     transform: scale(1);
     border-radius: 0;
+    filter: brightness(1.25) saturate(1.15);
+    box-shadow: 0 0 4px 1px rgba(249, 168, 37, 1);
   }
 }
 
-/* Shortest Path Animation - Agent 2 (Cyan) */
+/* Shortest Path Animation - Agent 2 (Super-Yellow) */
 .node-path-second {
   animation: pathAnimationSecond 1s ease-out forwards;
-  background-color: var(--color-path-second) !important;
+  background-color: rgba(255, 235, 59, 0.35);
+  box-shadow: inset 0 0 0 4px rgba(249, 168, 37, 1);
 }
 
 @keyframes pathAnimationSecond {
   0% {
-    background-color: var(--color-path-second);
+    background-color: rgba(255, 235, 59, 0.5);
+    box-shadow: inset 0 0 0 4px rgba(249, 168, 37, 1);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 10px var(--color-path-second);
+    box-shadow: inset 0 0 0 5px rgba(249, 168, 37, 1),
+      0 0 10px rgba(255, 235, 59, 0.6);
   }
   100% {
-    background-color: var(--color-path-second);
+    background-color: rgba(255, 235, 59, 0.35);
+    box-shadow: inset 0 0 0 4px rgba(249, 168, 37, 0.95),
+      0 0 5px rgba(255, 235, 59, 0.4);
     transform: scale(1);
-    box-shadow: 0 0 5px var(--color-path-second);
   }
 }
 
-/* Overlap - Both agents visited same node (Diagonal Gradient Split) */
+/* Overlap - Both agents visited same node */
 .node-visited-overlap {
   animation: visitedAnimationOverlap 1.5s ease-out forwards;
 }
 
 @keyframes visitedAnimationOverlap {
   0% {
-    background: linear-gradient(135deg, #9c27b0 0%, #f44336 100%);
     transform: scale(0.3);
     border-radius: 50%;
+    filter: brightness(2) saturate(1.5);
+    box-shadow: 0 0 10px 3px rgba(76, 175, 80, 0.9);
   }
   50% {
-    background: linear-gradient(135deg, #7b1fa2 0%, #e53935 100%);
     transform: scale(1.2);
     border-radius: 25%;
+    filter: brightness(1.6) saturate(1.3);
+    box-shadow: 0 0 7px 2px rgba(76, 175, 80, 0.7);
   }
   100% {
-    background: linear-gradient(135deg, var(--color-visited-end) 0%, var(--color-visited-second-end) 100%);
     transform: scale(1);
     border-radius: 0;
+    filter: brightness(1.3) saturate(1.2);
+    box-shadow: 0 0 5px 2px rgba(56, 142, 60, 0.5);
   }
 }
 
@@ -245,44 +265,54 @@ html {
 /* Vertical Split - Agents moving North/South together (Left/Right split) */
 .node-path-overlap-vertical {
   animation: pathAnimationOverlapVertical 1s ease-out forwards;
-  background: linear-gradient(to right, var(--color-path) 50%, var(--color-path-second) 50%) !important;
+  box-shadow: inset 3px 0 0 0 var(--color-path),
+    inset -3px 0 0 0 var(--color-path-second);
 }
 
 @keyframes pathAnimationOverlapVertical {
   0% {
-    background: linear-gradient(to right, var(--color-path) 50%, var(--color-path-second) 50%);
+    box-shadow: inset 3px 0 0 0 var(--color-path),
+      inset -3px 0 0 0 var(--color-path-second);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
+    box-shadow: inset 4px 0 0 0 var(--color-path),
+      inset -4px 0 0 0 var(--color-path-second),
+      0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
   }
   100% {
-    background: linear-gradient(to right, var(--color-path) 50%, var(--color-path-second) 50%);
+    box-shadow: inset 3px 0 0 0 var(--color-path),
+      inset -3px 0 0 0 var(--color-path-second), 0 0 8px rgba(255, 235, 59, 0.3),
+      0 0 8px rgba(0, 229, 255, 0.3);
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
   }
 }
 
 /* Horizontal Split - Agents moving East/West together (Top/Bottom split) */
 .node-path-overlap-horizontal {
   animation: pathAnimationOverlapHorizontal 1s ease-out forwards;
-  background: linear-gradient(to bottom, var(--color-path) 50%, var(--color-path-second) 50%) !important;
+  box-shadow: inset 0 3px 0 0 var(--color-path),
+    inset 0 -3px 0 0 var(--color-path-second);
 }
 
 @keyframes pathAnimationOverlapHorizontal {
   0% {
-    background: linear-gradient(to bottom, var(--color-path) 50%, var(--color-path-second) 50%);
+    box-shadow: inset 0 3px 0 0 var(--color-path),
+      inset 0 -3px 0 0 var(--color-path-second);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
+    box-shadow: inset 0 4px 0 0 var(--color-path),
+      inset 0 -4px 0 0 var(--color-path-second),
+      0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
   }
   100% {
-    background: linear-gradient(to bottom, var(--color-path) 50%, var(--color-path-second) 50%);
+    box-shadow: inset 0 3px 0 0 var(--color-path),
+      inset 0 -3px 0 0 var(--color-path-second), 0 0 8px rgba(255, 235, 59, 0.3),
+      0 0 8px rgba(0, 229, 255, 0.3);
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
   }
 }
 
@@ -293,131 +323,161 @@ html {
 /* Diagonal Left - Top-Left to Bottom-Right split (135deg) */
 .node-path-overlap-diag-left {
   animation: pathAnimationOverlapDiagLeft 1s ease-out forwards;
-  background: linear-gradient(135deg, var(--color-path) 50%, var(--color-path-second) 50%) !important;
+  box-shadow: inset 3px 3px 0 0 var(--color-path),
+    inset -3px -3px 0 0 var(--color-path-second);
 }
 
 @keyframes pathAnimationOverlapDiagLeft {
   0% {
-    background: linear-gradient(135deg, var(--color-path) 50%, var(--color-path-second) 50%);
+    box-shadow: inset 3px 3px 0 0 var(--color-path),
+      inset -3px -3px 0 0 var(--color-path-second);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
+    box-shadow: inset 4px 4px 0 0 var(--color-path),
+      inset -4px -4px 0 0 var(--color-path-second),
+      0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
   }
   100% {
-    background: linear-gradient(135deg, var(--color-path) 50%, var(--color-path-second) 50%);
+    box-shadow: inset 3px 3px 0 0 var(--color-path),
+      inset -3px -3px 0 0 var(--color-path-second),
+      0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
   }
 }
 
 /* Diagonal Right - Top-Right to Bottom-Left split (45deg) */
 .node-path-overlap-diag-right {
   animation: pathAnimationOverlapDiagRight 1s ease-out forwards;
-  background: linear-gradient(45deg, var(--color-path-second) 50%, var(--color-path) 50%) !important;
+  box-shadow: inset -3px 3px 0 0 var(--color-path-second),
+    inset 3px -3px 0 0 var(--color-path);
 }
 
 @keyframes pathAnimationOverlapDiagRight {
   0% {
-    background: linear-gradient(45deg, var(--color-path-second) 50%, var(--color-path) 50%);
+    box-shadow: inset -3px 3px 0 0 var(--color-path-second),
+      inset 3px -3px 0 0 var(--color-path);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
+    box-shadow: inset -4px 4px 0 0 var(--color-path-second),
+      inset 4px -4px 0 0 var(--color-path), 0 0 12px rgba(255, 235, 59, 0.5),
+      0 0 12px rgba(0, 229, 255, 0.5);
   }
   100% {
-    background: linear-gradient(45deg, var(--color-path-second) 50%, var(--color-path) 50%);
+    box-shadow: inset -3px 3px 0 0 var(--color-path-second),
+      inset 3px -3px 0 0 var(--color-path), 0 0 8px rgba(255, 235, 59, 0.3),
+      0 0 8px rgba(0, 229, 255, 0.3);
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
   }
 }
 
 /* Corner Top-Left - Agent 2 (Cyan) in top-left corner (25%) */
 .node-path-overlap-corner-tl {
   animation: pathAnimationOverlapCornerTL 1s ease-out forwards;
-  background: linear-gradient(135deg, var(--color-path-second) 25%, var(--color-path) 25%) !important;
+  box-shadow: inset 3px 3px 0 0 var(--color-path-second),
+    inset 0 0 0 3px var(--color-path);
 }
 
 @keyframes pathAnimationOverlapCornerTL {
   0% {
-    background: linear-gradient(135deg, var(--color-path-second) 25%, var(--color-path) 25%);
+    box-shadow: inset 3px 3px 0 0 var(--color-path-second),
+      inset 0 0 0 3px var(--color-path);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
+    box-shadow: inset 4px 4px 0 0 var(--color-path-second),
+      inset 0 0 0 4px var(--color-path), 0 0 12px rgba(255, 235, 59, 0.5),
+      0 0 12px rgba(0, 229, 255, 0.5);
   }
   100% {
-    background: linear-gradient(135deg, var(--color-path-second) 25%, var(--color-path) 25%);
+    box-shadow: inset 3px 3px 0 0 var(--color-path-second),
+      inset 0 0 0 3px var(--color-path), 0 0 8px rgba(255, 235, 59, 0.3),
+      0 0 8px rgba(0, 229, 255, 0.3);
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
   }
 }
 
 /* Corner Top-Right - Agent 2 (Cyan) in top-right corner (25%) */
 .node-path-overlap-corner-tr {
   animation: pathAnimationOverlapCornerTR 1s ease-out forwards;
-  background: linear-gradient(-135deg, var(--color-path-second) 25%, var(--color-path) 25%) !important;
+  box-shadow: inset -3px 3px 0 0 var(--color-path-second),
+    inset 0 0 0 3px var(--color-path);
 }
 
 @keyframes pathAnimationOverlapCornerTR {
   0% {
-    background: linear-gradient(-135deg, var(--color-path-second) 25%, var(--color-path) 25%);
+    box-shadow: inset -3px 3px 0 0 var(--color-path-second),
+      inset 0 0 0 3px var(--color-path);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
+    box-shadow: inset -4px 4px 0 0 var(--color-path-second),
+      inset 0 0 0 4px var(--color-path), 0 0 12px rgba(255, 235, 59, 0.5),
+      0 0 12px rgba(0, 229, 255, 0.5);
   }
   100% {
-    background: linear-gradient(-135deg, var(--color-path-second) 25%, var(--color-path) 25%);
+    box-shadow: inset -3px 3px 0 0 var(--color-path-second),
+      inset 0 0 0 3px var(--color-path), 0 0 8px rgba(255, 235, 59, 0.3),
+      0 0 8px rgba(0, 229, 255, 0.3);
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
   }
 }
 
 /* Corner Bottom-Right - Agent 2 (Cyan) in bottom-right corner (25%) */
 .node-path-overlap-corner-br {
   animation: pathAnimationOverlapCornerBR 1s ease-out forwards;
-  background: linear-gradient(-45deg, var(--color-path-second) 25%, var(--color-path) 25%) !important;
+  box-shadow: inset -3px -3px 0 0 var(--color-path-second),
+    inset 0 0 0 3px var(--color-path);
 }
 
 @keyframes pathAnimationOverlapCornerBR {
   0% {
-    background: linear-gradient(-45deg, var(--color-path-second) 25%, var(--color-path) 25%);
+    box-shadow: inset -3px -3px 0 0 var(--color-path-second),
+      inset 0 0 0 3px var(--color-path);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
+    box-shadow: inset -4px -4px 0 0 var(--color-path-second),
+      inset 0 0 0 4px var(--color-path), 0 0 12px rgba(255, 235, 59, 0.5),
+      0 0 12px rgba(0, 229, 255, 0.5);
   }
   100% {
-    background: linear-gradient(-45deg, var(--color-path-second) 25%, var(--color-path) 25%);
+    box-shadow: inset -3px -3px 0 0 var(--color-path-second),
+      inset 0 0 0 3px var(--color-path), 0 0 8px rgba(255, 235, 59, 0.3),
+      0 0 8px rgba(0, 229, 255, 0.3);
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
   }
 }
 
 /* Corner Bottom-Left - Agent 2 (Cyan) in bottom-left corner (25%) */
 .node-path-overlap-corner-bl {
   animation: pathAnimationOverlapCornerBL 1s ease-out forwards;
-  background: linear-gradient(45deg, var(--color-path-second) 25%, var(--color-path) 25%) !important;
+  box-shadow: inset 3px -3px 0 0 var(--color-path-second),
+    inset 0 0 0 3px var(--color-path);
 }
 
 @keyframes pathAnimationOverlapCornerBL {
   0% {
-    background: linear-gradient(45deg, var(--color-path-second) 25%, var(--color-path) 25%);
+    box-shadow: inset 3px -3px 0 0 var(--color-path-second),
+      inset 0 0 0 3px var(--color-path);
     transform: scale(0.6);
   }
   50% {
     transform: scale(1.3);
-    box-shadow: 0 0 12px rgba(255, 235, 59, 0.5), 0 0 12px rgba(0, 229, 255, 0.5);
+    box-shadow: inset 4px -4px 0 0 var(--color-path-second),
+      inset 0 0 0 4px var(--color-path), 0 0 12px rgba(255, 235, 59, 0.5),
+      0 0 12px rgba(0, 229, 255, 0.5);
   }
   100% {
-    background: linear-gradient(45deg, var(--color-path-second) 25%, var(--color-path) 25%);
+    box-shadow: inset 3px -3px 0 0 var(--color-path-second),
+      inset 0 0 0 3px var(--color-path), 0 0 8px rgba(255, 235, 59, 0.3),
+      0 0 8px rgba(0, 229, 255, 0.3);
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 235, 59, 0.3), 0 0 8px rgba(0, 229, 255, 0.3);
   }
 }

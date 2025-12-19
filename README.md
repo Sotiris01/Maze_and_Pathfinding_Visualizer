@@ -35,43 +35,58 @@ An interactive web application that visualizes pathfinding and maze generation a
 
 ### 🤖 Pathfinding Algorithms
 
-| Algorithm             | Description                                      | Guarantees Shortest Path |
-| --------------------- | ------------------------------------------------ | :----------------------: |
-| **Dijkstra's**        | Classic algorithm exploring nodes by distance    |          ✅ Yes          |
-| **A\* Search**        | Informed search using Manhattan distance         |          ✅ Yes          |
-| **Greedy Best-First** | Heuristic-only (faster, not always optimal)      |          ❌ No           |
-| **Bidirectional BFS** | Searches from both start & finish simultaneously |   ✅ Yes (unweighted)    |
-| **Bidirectional A\*** | Bidirectional search with A\* heuristics         |          ✅ Yes          |
-| **Jump Point Search** | Optimized A\* (10-100x faster in open spaces)    |          ✅ Yes          |
-| **BFS**               | Breadth-First Search - layer by layer            |   ✅ Yes (unweighted)    |
-| **DFS**               | Depth-First Search - explores deep before wide   |          ❌ No           |
+| Algorithm             | Description                                      | Weighted | Guarantees Shortest Path |
+| --------------------- | ------------------------------------------------ | :------: | :----------------------: |
+| **Dijkstra's**        | Classic algorithm exploring nodes by distance    |  ✅ Yes  |          ✅ Yes          |
+| **A\* Search**        | Informed search using Manhattan distance         |  ✅ Yes  |          ✅ Yes          |
+| **Bidirectional A\*** | Bidirectional search with A\* heuristics         |  ✅ Yes  |          ✅ Yes          |
+| **Greedy Best-First** | Heuristic-only (faster, not always optimal)      |  ❌ No   |          ❌ No           |
+| **Bidirectional BFS** | Searches from both start & finish simultaneously |  ❌ No   |   ✅ Yes (unweighted)    |
+| **Jump Point Search** | Optimized A\* (10-100x faster in open spaces)    |  ❌ No   |          ✅ Yes          |
+| **BFS**               | Breadth-First Search - layer by layer            |  ❌ No   |   ✅ Yes (unweighted)    |
+| **DFS**               | Depth-First Search - explores deep before wide   |  ❌ No   |          ❌ No           |
 
 ### 🧩 Maze Generation
 
-| Algorithm              | Style      | Description                                   |
-| ---------------------- | ---------- | --------------------------------------------- |
-| **Recursive Division** | Structured | Creates chambers with connecting passages     |
-| **Randomized DFS**     | Organic    | Recursive Backtracker - winding, cave-like    |
-| **Prim's Algorithm**   | Organic    | Randomized MST - creates smooth cave patterns |
-| **Spiral Maze**        | Geometric  | Concentric rings from outside to inside       |
-| **Cellular Automata**  | Organic    | Game of Life-inspired chaotic cave generation |
+| Algorithm              | Style      | Description                                       |
+| ---------------------- | ---------- | ------------------------------------------------- |
+| **Recursive Division** | Structured | Creates chambers with connecting passages         |
+| **Randomized DFS**     | Organic    | Recursive Backtracker - winding, cave-like        |
+| **Prim's Algorithm**   | Organic    | Randomized MST - creates smooth cave patterns     |
+| **Spiral Maze**        | Geometric  | Concentric rings from outside to inside           |
+| **Cellular Automata**  | Organic    | Game of Life-inspired chaotic cave generation     |
+| **Terrain Map**        | Weighted   | Perlin Noise terrain with configurable intensity  |
 
 ### 🏁 Race Mode
 
 Compare two algorithms side-by-side! Watch them compete to find the path first with distinct color schemes:
 
-- **Agent 1:** Blue→Purple visited nodes, Yellow path
-- **Agent 2:** Orange→Red visited nodes, Cyan path
-- **Overlap:** Lime green for shared path segments
+- **Agent 1:** Blue glow on visited nodes, Super-blue path
+- **Agent 2:** Yellow glow on visited nodes, Super-yellow path
+- **Overlap:** Green glow for shared visited nodes, Super-green path
+- **Winner:** Determined by lowest **weighted path cost** (sum of tile weights)
 
 ### 🎮 Interactive Controls
 
 - 🖱️ **Draw walls** - Click and drag to create obstacles
 - 🧹 **Erase walls** - `Ctrl/Cmd` + click to remove walls
+- ⚖️ **Draw weights** - Switch to Weight Mode to paint terrain (1-10)
 - 🟢 **Drag Start node** - Reposition the starting point
 - 🔴 **Drag Finish node** - Reposition the destination
 - 📏 **Resize grid** - 5-40 rows × 5-60 columns
 - ⚡ **Speed control** - Adjust animation speed (1-50ms)
+- 🏔️ **Generate Terrain** - Create weighted terrain maps with Perlin Noise
+
+### ⚖️ Weighted Terrain (Phase G)
+
+- **10-tier grayscale visualization** - Weight 1 (white) to Weight 10 (dark)
+- **Draw Mode toggle** - Switch between Wall 🧱 and Weight ⚖️ modes
+- **Click to increase weight** - Cycles 1→2→...→9→10(∞)
+- **Ctrl+click to decrease** - Cycles 10→9→...→1
+- **Terrain Map generation** - Perlin Noise creates organic hills & valleys
+- **Peak Intensity slider** - Control mountain/valley distribution
+- **Weighted path length** - Statistics show sum of tile weights, not just tile count
+- **Smart algorithm filtering** - Unweighted algorithms disabled when terrain exists
 
 ### 📊 Statistics Dashboard
 
@@ -79,7 +94,7 @@ After each visualization, view detailed metrics:
 
 - Execution time (microseconds with scientific precision)
 - Nodes visited count
-- Final path length
+- **Weighted path length** (sum of tile weights, not just tile count)
 - Side-by-side comparison in Race Mode
 - **Unreachable target detection** - Shows "Unreachable" with warning
 - **Web Worker Benchmarking** - Scientific timing isolated from UI thread
@@ -198,11 +213,11 @@ npm run deploy
 src/
 ├── algorithms/
 │   ├── pathfinding/
-│   │   ├── dijkstra.ts              # Dijkstra's algorithm
-│   │   ├── astar.ts                 # A* with Manhattan heuristic
+│   │   ├── dijkstra.ts              # Dijkstra's algorithm (weighted)
+│   │   ├── astar.ts                 # A* with Manhattan heuristic (weighted)
 │   │   ├── greedyBestFirst.ts       # Greedy Best-First (heuristic-only)
 │   │   ├── bidirectionalBFS.ts      # Bidirectional BFS (Swarm)
-│   │   ├── bidirectionalAStar.ts    # Bidirectional A*
+│   │   ├── bidirectionalAStar.ts    # Bidirectional A* (weighted)
 │   │   ├── jumpPointSearch.ts       # Jump Point Search (JPS)
 │   │   ├── bfs.ts                   # Breadth-First Search
 │   │   └── dfs.ts                   # Depth-First Search
@@ -211,13 +226,14 @@ src/
 │       ├── randomizedDFS.ts         # Randomized DFS (Backtracker)
 │       ├── prims.ts                 # Prim's algorithm (MST-based)
 │       ├── spiralMaze.ts            # Spiral pattern maze
-│       └── cellularAutomata.ts      # Game of Life-inspired maze
+│       ├── cellularAutomata.ts      # Game of Life-inspired maze
+│       └── terrainMap.ts            # Perlin Noise terrain generator
 ├── components/
 │   ├── Board/                       # Grid renderer with CSS Grid + touch support
-│   ├── Node/                        # Individual cell with React.memo optimization
+│   ├── Node/                        # Individual cell with weight display
 │   ├── Controls/                    # Accordion-based sidebar
 │   │   ├── Accordion.tsx            # Reusable collapsible section
-│   │   └── ControlPanel.tsx         # Main control panel (3 sections)
+│   │   └── ControlPanel.tsx         # Main control panel with terrain controls
 │   ├── Legend/                      # Color legend component
 │   ├── History/                     # Run history page (Phase F)
 │   │   ├── HistorySection.tsx       # Run history table
@@ -228,22 +244,24 @@ src/
 │   └── UI/
 │       └── Toast.tsx                # Slide-up notification component
 ├── context/
-│   └── GridContext.tsx              # Global state + history management
+│   └── GridContext.tsx              # Global state + DrawMode + history
 ├── hooks/
 │   ├── useBenchmarking.ts           # Web Worker benchmarking hook
 │   ├── useHistory.ts                # History localStorage hook
-│   └── useVisualization.ts          # Animation system + history recording
+│   └── useVisualization.ts          # Animation system + weighted path length
 ├── types/
-│   └── index.ts                     # TypeScript interfaces + RunRecord
+│   └── index.ts                     # TypeScript interfaces + DrawMode + RunRecord
 ├── styles/
-│   └── variables.css                # CSS variables + global animations
+│   └── variables.css                # CSS variables + blue/yellow/green animations
 ├── utils/
-│   └── gridUtils.ts                 # Grid helper functions
+│   ├── gridUtils.ts                 # Grid helper functions + weight utilities
+│   ├── pathUtils.ts                 # Weighted path length calculation
+│   └── perlinNoise.ts               # Perlin Noise implementation for terrain
 └── workers/
     └── benchmark.worker.ts          # Isolated timing Web Worker
 ```
 
-**📊 Codebase Stats:** ~10,572 lines of code across 53 files
+**📊 Codebase Stats:** ~12,867 lines of code across 54 files
 
 ---
 
@@ -251,20 +269,22 @@ src/
 
 ### Dijkstra's Algorithm
 
-The classic shortest-path algorithm. Explores nodes in order of increasing distance from the start, guaranteeing the optimal path.
+The classic shortest-path algorithm. Explores nodes in order of increasing distance from the start, guaranteeing the optimal path. **Supports weighted terrain.**
 
 ```
 Time Complexity: O((V + E) log V) with priority queue
 Space Complexity: O(V)
+Weighted: Yes - uses node.weight as traversal cost
 ```
 
 ### A\* Search
 
-An informed search algorithm combining Dijkstra with a heuristic (Manhattan distance) to prioritize nodes closer to the goal.
+An informed search algorithm combining Dijkstra with a heuristic (Manhattan distance) to prioritize nodes closer to the goal. **Supports weighted terrain.**
 
 ```
 Time Complexity: O(E) - depends on heuristic quality
 Space Complexity: O(V)
+Weighted: Yes - gScore includes node weights
 ```
 
 ### Greedy Best-First Search
@@ -289,11 +309,12 @@ Advantage: ~2x faster than unidirectional BFS
 
 ### Bidirectional A\*
 
-Combines A\* heuristics with bidirectional search. Each direction uses heuristic pointing to opposite end.
+Combines A\* heuristics with bidirectional search. Each direction uses heuristic pointing to opposite end. **Supports weighted terrain.**
 
 ```
 Time Complexity: O(E) - depends on heuristic quality
 Space Complexity: O(V)
+Weighted: Yes - both directions use node weights
 Advantage: ~2x faster than unidirectional A\*
 ```
 
@@ -340,17 +361,19 @@ Space Complexity: O(V)
 
 ## 🎨 Color Legend
 
-| Element                 | Color       | Description                    |
-| ----------------------- | ----------- | ------------------------------ |
-| ⬜ Unvisited            | White       | Unexplored nodes               |
-| 🟢 Start                | Green       | Starting position              |
-| 🔴 Finish               | Red         | Destination                    |
-| ⬛ Wall                 | Dark Grey   | Obstacles                      |
-| 🔵→🟣 Visited (Agent 1) | Blue→Purple | Explored by first algorithm    |
-| 🟠→🔴 Visited (Agent 2) | Orange→Red  | Explored by second algorithm   |
-| 🟡 Path (Agent 1)       | Yellow      | Final path of first algorithm  |
-| 🩵 Path (Agent 2)        | Cyan        | Final path of second algorithm |
-| 💚 Overlap              | Lime Green  | Shared path nodes in Race Mode |
+| Element                 | Color        | Description                    |
+| ----------------------- | ------------ | ------------------------------ |
+| ⬜ Unvisited            | White        | Unexplored nodes               |
+| 🟢 Start                | Green        | Starting position              |
+| 🔴 Finish               | Red          | Destination                    |
+| ⬛ Wall                 | Dark Grey    | Obstacles                      |
+| 🔵 Visited (Agent 1)    | Blue Glow    | Explored by first algorithm    |
+| 🟡 Visited (Agent 2)    | Yellow Glow  | Explored by second algorithm   |
+| 🟢 Visited Overlap      | Green Glow   | Explored by both algorithms    |
+| 🔷 Path (Agent 1)       | Super-Blue   | Final path of first algorithm  |
+| 🟨 Path (Agent 2)       | Super-Yellow | Final path of second algorithm |
+| 💚 Path Overlap         | Super-Green  | Shared path nodes in Race Mode |
+| ⬜→⬛ Weight 1-10       | Grayscale    | Terrain difficulty (light=easy)|
 
 ---
 
@@ -381,6 +404,13 @@ Space Complexity: O(V)
 - [x] **Phase D:** A\*, BFS, DFS algorithms + Race Mode
 - [x] **Phase E:** Statistics dashboard, Legend, Accordion UI, Toast notifications, Responsive mobile
 - [x] **Phase F:** 6 new algorithms, Hidden Target Mode, Web Worker Benchmarking, Run History, GitHub Pages deployment
+- [x] **Phase G:** Weighted Terrain System
+  - ⚖️ 10-tier weighted nodes with grayscale visualization
+  - 🏔️ Perlin Noise terrain map generation
+  - 📊 Peak Intensity slider for terrain distribution control
+  - 🔢 Weighted path length calculation (sum of tile weights)
+  - 🎨 New color scheme: Blue/Yellow/Green for A1/A2/Overlap
+  - 🧮 Smart algorithm filtering (disable unweighted algorithms on terrain)
 
 ---
 

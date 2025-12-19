@@ -20,6 +20,7 @@ export const createNode = (
     isVisited: false,
     distance: Infinity,
     previousNode: null,
+    weight: 1, // Default weight: 1 = normal terrain
   };
 };
 
@@ -118,8 +119,15 @@ export const getNewGridWithWallToggled = (
 };
 
 /**
- * Creates a new grid with a wall SET at the specified position (Draw mode)
- * Used for consistent drag-to-draw functionality
+ * Weight constants
+ */
+export const MIN_WEIGHT = 1;
+export const MAX_WEIGHT = 10;
+
+/**
+ * Creates a new grid with wall TOGGLED to ON at the specified position
+ * Used for WALL mode: Sets tile to wall (∞) regardless of current weight
+ * Skips if already a wall
  */
 export const getNewGridWithWallSet = (
   grid: Grid,
@@ -142,6 +150,7 @@ export const getNewGridWithWallSet = (
   const newNode: Node = {
     ...node,
     isWall: true,
+    weight: 1,
   };
 
   newGrid[row] = newGrid[row].slice();
@@ -151,8 +160,9 @@ export const getNewGridWithWallSet = (
 };
 
 /**
- * Creates a new grid with wall REMOVED at the specified position (Eraser mode)
- * Used for Ctrl+Click/Drag erasing functionality
+ * Creates a new grid with wall TOGGLED to OFF at the specified position
+ * Used for WALL mode: Sets tile to weight=1 (removes wall)
+ * Skips if not a wall
  */
 export const getNewGridWithWallRemoved = (
   grid: Grid,
@@ -175,6 +185,7 @@ export const getNewGridWithWallRemoved = (
   const newNode: Node = {
     ...node,
     isWall: false,
+    weight: 1,
   };
 
   newGrid[row] = newGrid[row].slice();
@@ -287,7 +298,7 @@ export const getNewGridWithFinishMoved = (
 
 /**
  * Resets the grid for a new pathfinding run (clears visited/path states)
- * Keeps walls, start, and finish intact
+ * Keeps walls, start, finish, and weights intact
  */
 export const resetGridForPathfinding = (grid: Grid): Grid => {
   return grid.map((row) =>
@@ -296,18 +307,20 @@ export const resetGridForPathfinding = (grid: Grid): Grid => {
       isVisited: false,
       distance: Infinity,
       previousNode: null,
+      // weight is preserved
     }))
   );
 };
 
 /**
- * Clears all walls from the grid
+ * Clears all walls and weights from the grid
  */
 export const clearWalls = (grid: Grid): Grid => {
   return grid.map((row) =>
     row.map((node) => ({
       ...node,
       isWall: false,
+      weight: 1, // Reset to normal terrain
     }))
   );
 };
@@ -351,4 +364,134 @@ export const getUnvisitedNeighbors = (grid: Grid, node: Node): Node[] => {
   return getNeighbors(grid, node).filter(
     (neighbor) => !neighbor.isVisited && !neighbor.isWall
   );
+};
+
+/**
+ * Creates a new grid with the weight INCREMENTED at the specified position
+ * Increments weight: 1 → 2 → ... → 10 → wall (∞)
+ * Returns unchanged grid if already a wall
+ */
+export const getNewGridWithWeightIncremented = (
+  grid: Grid,
+  row: number,
+  col: number
+): Grid => {
+  const newGrid = grid.slice();
+  const node = newGrid[row][col];
+
+  // Don't allow changes on start or finish nodes
+  if (node.isStart || node.isFinish) {
+    return grid;
+  }
+
+  // Already a wall, no change (stop at wall)
+  if (node.isWall) {
+    return grid;
+  }
+
+  // At max weight (10), convert to wall
+  if (node.weight >= MAX_WEIGHT) {
+    const newNode: Node = {
+      ...node,
+      isWall: true,
+      weight: 1, // Reset weight when becoming wall
+    };
+    newGrid[row] = newGrid[row].slice();
+    newGrid[row][col] = newNode;
+    return newGrid;
+  }
+
+  // Increment weight by 1
+  const newNode: Node = {
+    ...node,
+    weight: node.weight + 1,
+  };
+
+  newGrid[row] = newGrid[row].slice();
+  newGrid[row][col] = newNode;
+
+  return newGrid;
+};
+
+/**
+ * Creates a new grid with the weight DECREMENTED at the specified position
+ * Decrements weight: wall (∞) → 10 → ... → 2 → 1
+ * Returns unchanged grid if already at min weight (1)
+ */
+export const getNewGridWithWeightDecremented = (
+  grid: Grid,
+  row: number,
+  col: number
+): Grid => {
+  const newGrid = grid.slice();
+  const node = newGrid[row][col];
+
+  // Don't allow changes on start or finish nodes
+  if (node.isStart || node.isFinish) {
+    return grid;
+  }
+
+  // Wall: convert to max weight (10)
+  if (node.isWall) {
+    const newNode: Node = {
+      ...node,
+      isWall: false,
+      weight: MAX_WEIGHT,
+    };
+    newGrid[row] = newGrid[row].slice();
+    newGrid[row][col] = newNode;
+    return newGrid;
+  }
+
+  // Already at min weight (1), no change
+  if (node.weight <= MIN_WEIGHT) {
+    return grid;
+  }
+
+  // Decrement weight by 1
+  const newNode: Node = {
+    ...node,
+    weight: node.weight - 1,
+  };
+
+  newGrid[row] = newGrid[row].slice();
+  newGrid[row][col] = newNode;
+
+  return newGrid;
+};
+
+/**
+ * Creates a new grid with the weight SET at the specified position
+ * Used for consistent drag-to-paint weight functionality
+ * Note: Adding weight removes any wall on the node
+ */
+export const getNewGridWithWeightSet = (
+  grid: Grid,
+  row: number,
+  col: number,
+  weight: number
+): Grid => {
+  const newGrid = grid.slice();
+  const node = newGrid[row][col];
+
+  // Don't allow weights on start or finish nodes
+  if (node.isStart || node.isFinish) {
+    return grid;
+  }
+
+  // Already has this weight, no change needed
+  if (node.weight === weight && !node.isWall) {
+    return grid;
+  }
+
+  const newNode: Node = {
+    ...node,
+    weight,
+    isWall: false, // Remove wall when setting weight
+  };
+
+  newGrid[row] = newGrid[row].slice();
+  newGrid[row][col] = newNode;
+
+  return newGrid;
 };

@@ -143,7 +143,10 @@ const MainContent: React.FC = () => {
   };
 
   // Handler for generate maze button
-  const handleGenerateMaze = (mazeType: MazeType): void => {
+  const handleGenerateMaze = (
+    mazeType: MazeType,
+    terrainConfig?: { frequency: number; intensity?: number }
+  ): void => {
     handleClearPath();
     clearAllWalls();
 
@@ -154,7 +157,8 @@ const MainContent: React.FC = () => {
           grid,
           setGrid,
           setIsVisualizing,
-          Math.max(15, animationSpeed / 2)
+          Math.max(15, animationSpeed / 2),
+          terrainConfig
         );
       }, 50);
     });
@@ -196,6 +200,7 @@ const MainContent: React.FC = () => {
             onClearPath={handleClearPath}
             onGenerateMaze={handleGenerateMaze}
             onVisualizeRace={handleVisualizeRace}
+            onMobileAction={closeSidebar}
           />
         </aside>
 

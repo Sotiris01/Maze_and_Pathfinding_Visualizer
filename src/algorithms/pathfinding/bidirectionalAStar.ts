@@ -260,7 +260,8 @@ export function bidirectionalAStar(
     return neighbors.filter((n) => !n.isWall);
   };
 
-  // Main loop - alternate between expanding from start and finish
+  // Main loop - expand from the side with smaller minimum f-score
+  // This optimization reduces unnecessary exploration while maintaining correctness
   while (!openSetStart.isEmpty() && !openSetFinish.isEmpty()) {
     // === TERMINATION CHECK ===
     // Standard bidirectional A* termination:
@@ -274,8 +275,13 @@ export function bidirectionalAStar(
       break;
     }
 
-    // === EXPAND FROM START SIDE ===
-    if (!openSetStart.isEmpty()) {
+    // === CHOOSE WHICH SIDE TO EXPAND ===
+    // Always expand from the side with smaller minimum f-score
+    // This balances the search and reduces total nodes explored
+    const expandFromStart = topFStart <= topFFinish;
+
+    if (expandFromStart) {
+      // === EXPAND FROM START SIDE ===
       const current = openSetStart.extractMin()!;
       const currentKey = getKey(current);
 
@@ -295,7 +301,9 @@ export function bidirectionalAStar(
       // Process neighbors
       for (const neighbor of getNeighbors(current)) {
         const neighborKey = getKey(neighbor);
-        const tentativeGScore = (gScoreStart.get(currentKey) ?? Infinity) + 1;
+        // Use neighbor's weight as traversal cost (1 = normal, higher = heavier terrain)
+        const tentativeGScore =
+          (gScoreStart.get(currentKey) ?? Infinity) + neighbor.weight;
         const neighborGScore = gScoreStart.get(neighborKey) ?? Infinity;
 
         if (tentativeGScore < neighborGScore) {
@@ -325,10 +333,8 @@ export function bidirectionalAStar(
           }
         }
       }
-    }
-
-    // === EXPAND FROM FINISH SIDE ===
-    if (!openSetFinish.isEmpty()) {
+    } else {
+      // === EXPAND FROM FINISH SIDE ===
       const current = openSetFinish.extractMin()!;
       const currentKey = getKey(current);
 
@@ -354,7 +360,9 @@ export function bidirectionalAStar(
       // Process neighbors
       for (const neighbor of getNeighbors(current)) {
         const neighborKey = getKey(neighbor);
-        const tentativeGScore = (gScoreFinish.get(currentKey) ?? Infinity) + 1;
+        // Use neighbor's weight as traversal cost (1 = normal, higher = heavier terrain)
+        const tentativeGScore =
+          (gScoreFinish.get(currentKey) ?? Infinity) + neighbor.weight;
         const neighborGScore = gScoreFinish.get(neighborKey) ?? Infinity;
 
         if (tentativeGScore < neighborGScore) {

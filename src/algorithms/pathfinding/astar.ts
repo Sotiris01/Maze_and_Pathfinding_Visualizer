@@ -257,8 +257,9 @@ export function astar(grid: Grid, startNode: Node, finishNode: Node): Node[] {
 
       const neighborKey = getKey(neighbor);
 
-      // Calculate tentative gScore (current gScore + 1 for uniform cost)
-      const tentativeGScore = currentGScore + 1;
+      // Calculate tentative gScore using neighbor's weight as traversal cost
+      // (1 = normal terrain, higher = heavier terrain like mud/hills)
+      const tentativeGScore = currentGScore + neighbor.weight;
 
       // If this path is better than any previous one
       const neighborGScore = gScore.get(neighborKey) ?? Infinity;

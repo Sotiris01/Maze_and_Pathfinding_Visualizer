@@ -11,7 +11,13 @@ export interface Node {
   isVisited: boolean;
   distance: number; // For Dijkstra/A* - initialized to Infinity
   previousNode: Node | null; // For backtracking the shortest path
+  weight: number; // Terrain weight: 1 = normal, higher = heavier terrain (e.g., 5, 10)
 }
+
+/**
+ * Draw Mode - Determines what the user is painting on the grid
+ */
+export type DrawMode = "WALL" | "WEIGHT";
 
 /**
  * Grid Type - 2D array of Nodes
@@ -41,6 +47,16 @@ export enum MazeType {
   PRIMS = "prims",
   SPIRAL = "spiral",
   CELLULAR_AUTOMATA = "cellularAutomata",
+  TERRAIN_MAP = "terrainMap",
+}
+
+/**
+ * Terrain Generation Configuration
+ * Used with TERRAIN_MAP maze type to control terrain smoothness
+ */
+export interface TerrainConfig {
+  /** Base frequency - lower = smoother terrain (default: 0.12) */
+  frequency: number;
 }
 
 /**
@@ -53,6 +69,8 @@ export enum NodeState {
   START = "start",
   FINISH = "finish",
   PATH = "path",
+  WEIGHT_LIGHT = "weight-light",
+  WEIGHT_HEAVY = "weight-heavy",
 }
 
 /**

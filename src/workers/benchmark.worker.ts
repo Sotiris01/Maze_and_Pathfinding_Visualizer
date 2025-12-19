@@ -73,6 +73,7 @@ function deserializeGrid(serialized: SerializedGrid): Grid {
       isVisited: false,
       distance: Infinity,
       previousNode: null,
+      weight: 1, // Default weight for benchmark grids
     }))
   );
 }

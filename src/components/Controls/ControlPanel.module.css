@@ -1,6 +1,6 @@
 /* ===========================================
    ControlPanel Component Styles
-   Professional dark theme with accordion layout
+   UX-Focused Redesign with Visual Hierarchy
    =========================================== */
 
 /* === Panel Container === */
@@ -28,14 +28,14 @@
 
 /* === Panel Header === */
 .panelHeader {
-  padding: 24px 20px 20px;
+  padding: 20px 20px 16px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
   background: rgba(255, 255, 255, 0.02);
 }
 
 .panelTitle {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: #f1f5f9;
   letter-spacing: -0.5px;
@@ -43,18 +43,64 @@
 
 .panelSubtitle {
   margin: 4px 0 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #64748b;
   font-weight: 400;
+}
+
+/* ===========================================
+   PRIMARY ACTION SECTION - Most Prominent
+   =========================================== */
+.primarySection {
+  padding: 20px 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(102, 126, 234, 0.08) 0%,
+    transparent 100%
+  );
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quickActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.buttonQuick {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.buttonQuick:hover:not(:disabled) {
+  color: #e2e8f0;
+  background: rgba(51, 65, 85, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.buttonQuick:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* === Accordion Container === */
 .accordionContainer {
   flex: 1;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* === Control Groups === */
@@ -64,9 +110,57 @@
   gap: 8px;
 }
 
+/* === Current Selection Display === */
+.currentSelection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.currentLabel {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.currentValue {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  flex: 1;
+}
+
+.badgeOptimal {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.badgeSuboptimal {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 /* === Labels === */
 .label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
@@ -74,7 +168,7 @@
 }
 
 .labelSecondary {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #fb923c;
   text-transform: uppercase;
@@ -83,20 +177,42 @@
 
 /* === Hint Text === */
 .hint {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: #94a3b8;
   margin: 4px 0 0 0;
-  padding: 6px 8px;
-  background: rgba(148, 163, 184, 0.1);
+  padding: 6px 10px;
+  background: rgba(245, 158, 11, 0.1);
   border-radius: 4px;
-  border-left: 2px solid #667eea;
+  border-left: 2px solid #f59e0b;
+}
+
+/* === Mode Section (Game Modes) === */
+.modeSection {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.modeSectionTitle {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+
+.gridSizeSection {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.08);
 }
 
 /* === Select Dropdown === */
 .select {
   width: 100%;
   padding: 10px 36px 10px 12px;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #e2e8f0;
   background: rgba(30, 41, 59, 0.8);
@@ -132,6 +248,20 @@
   padding: 8px;
 }
 
+.select option:disabled {
+  color: #64748b;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+.select optgroup {
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.75rem;
+  background: #0f172a;
+  padding: 8px 0;
+}
+
 .selectSecondary {
   border-color: rgba(251, 146, 60, 0.4);
 }
@@ -150,13 +280,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 10px 0;
+}
+
+.toggleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .toggleLabel {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: #cbd5e1;
   font-weight: 500;
+}
+
+.toggleDesc {
+  font-size: 0.68rem;
+  color: #64748b;
 }
 
 .toggle {
@@ -169,6 +310,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .toggle:hover:not(:disabled) {
@@ -207,25 +349,28 @@
 /* Primary Button - Main CTA */
 .buttonPrimary {
   width: 100%;
-  padding: 14px 20px;
-  font-size: 1rem;
+  padding: 16px 20px;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4),
+    0 0 0 0 rgba(102, 126, 234, 0);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  letter-spacing: 0.3px;
 }
 
 .buttonPrimary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5),
+    0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
 .buttonPrimary:active:not(:disabled) {
@@ -303,6 +448,14 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+/* Maze Actions - Side by Side */
+.mazeActions {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 /* Loading Spinner */
@@ -444,6 +597,54 @@
 
 .nodeHint {
   font-size: 0.85rem;
+}
+
+/* ===========================================
+   Segmented Control (Draw Mode Toggle)
+   =========================================== */
+
+.segmentedControl {
+  display: flex;
+  gap: 0;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  padding: 3px;
+  margin-top: 8px;
+}
+
+.segmentButton {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.segmentButton:hover:not(:disabled):not(.segmentActive) {
+  color: #cbd5e1;
+  background: rgba(71, 85, 105, 0.4);
+}
+
+.segmentButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.segmentActive {
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.segmentActive:hover:not(:disabled) {
+  color: #fff;
 }
 
 /* ===========================================

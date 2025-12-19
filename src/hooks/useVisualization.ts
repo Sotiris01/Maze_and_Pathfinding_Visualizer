@@ -50,7 +50,9 @@ import { getRandomizedDFSMaze } from "../algorithms/maze/randomizedDFS";
 import { getPrimsMaze } from "../algorithms/maze/prims";
 import { getSpiralMaze } from "../algorithms/maze/spiralMaze";
 import { getCellularAutomataMaze } from "../algorithms/maze/cellularAutomata";
+import { generateTerrainMap, TerrainNode } from "../algorithms/maze/terrainMap";
 import { resetGridForPathfinding, clearWalls } from "../utils/gridUtils";
+import { calculateWeightedPathLength } from "../utils/pathUtils";
 import { AlgorithmStats, RaceStats } from "../components/Modals/StatsModal";
 import { useBenchmarking } from "./useBenchmarking";
 import { RunRecord } from "../types";
@@ -94,7 +96,8 @@ interface UseVisualizationReturn {
     grid: Grid,
     setGrid: React.Dispatch<React.SetStateAction<Grid>>,
     setIsVisualizing: React.Dispatch<React.SetStateAction<boolean>>,
-    speed: number
+    speed: number,
+    terrainConfig?: { frequency: number; intensity?: number }
   ) => void;
   clearVisualization: (
     grid: Grid,
@@ -438,7 +441,7 @@ export const useVisualization = (): UseVisualizationReturn => {
         algorithm,
         executionTime,
         visitedCount: visitedNodesInOrder.length,
-        pathLength: pathFound ? nodesInShortestPathOrder.length : -1,
+        pathLength: calculateWeightedPathLength(nodesInShortestPathOrder),
       };
 
       // === PHASE 3: ANIMATION (DOM Manipulation) ===
@@ -522,6 +525,23 @@ export const useVisualization = (): UseVisualizationReturn => {
   }, []);
 
   /**
+   * Removes weight CSS classes from all nodes via DOM
+   */
+  const clearWeightClasses = useCallback((): void => {
+    for (let w = 1; w <= 10; w++) {
+      const weightNodes = document.querySelectorAll(`.node-weight-${w}`);
+      weightNodes.forEach((node) => {
+        node.classList.remove(`node-weight-${w}`);
+        // Also clear the weight number display
+        const weightSpan = node.querySelector(".weight-number");
+        if (weightSpan) {
+          weightSpan.textContent = "";
+        }
+      });
+    }
+  }, []);
+
+  /**
    * Animates maze wall generation
    * Uses setTimeout to sequentially add walls for visual effect
    * Protects Start/Finish nodes from being turned into walls
@@ -567,6 +587,75 @@ export const useVisualization = (): UseVisualizationReturn => {
   );
 
   /**
+   * Animates terrain map generation
+   * Uses setTimeout to sequentially apply weights for visual effect
+   * Updates DOM classes based on weight values
+   */
+  const animateTerrainMap = useCallback(
+    (
+      terrainNodes: TerrainNode[],
+      speed: number,
+      onComplete: () => void
+    ): void => {
+      // Batch size for faster animation (terrain has many nodes)
+      const batchSize = Math.max(1, Math.floor(50 / Math.max(1, speed)));
+
+      for (let i = 0; i < terrainNodes.length; i += batchSize) {
+        const batchIndex = Math.floor(i / batchSize);
+        const timeoutId = setTimeout(() => {
+          // Process batch of nodes
+          const batch = terrainNodes.slice(
+            i,
+            Math.min(i + batchSize, terrainNodes.length)
+          );
+
+          for (const terrain of batch) {
+            // Direct DOM manipulation for terrain animation
+            const element = document.getElementById(
+              `node-${terrain.row}-${terrain.col}`
+            );
+            if (element) {
+              // Remove any existing weight classes
+              for (let w = 1; w <= 10; w++) {
+                element.classList.remove(`node-weight-${w}`);
+              }
+              element.classList.remove("node-wall");
+
+              // Add new weight class
+              element.classList.add(`node-weight-${terrain.weight}`);
+
+              // Update the displayed weight number
+              const weightSpan = element.querySelector(".weight-number");
+              if (weightSpan) {
+                if (terrain.weight === 10) {
+                  weightSpan.textContent = "∞";
+                } else if (terrain.weight > 1) {
+                  weightSpan.textContent = terrain.weight.toString();
+                } else {
+                  weightSpan.textContent = "";
+                }
+              }
+            }
+          }
+
+          // If this is the last batch, trigger completion
+          if (i + batchSize >= terrainNodes.length) {
+            onComplete();
+          }
+        }, batchIndex * speed);
+
+        timeoutIds.current.push(timeoutId);
+      }
+
+      // Handle empty terrain array
+      if (terrainNodes.length === 0) {
+        onComplete();
+      }
+    },
+    []
+  );
+
+  /**
    * Main maze generation function
    *
    * Steps:
@@ -581,7 +670,8 @@ export const useVisualization = (): UseVisualizationReturn => {
       grid: Grid,
       setGrid: React.Dispatch<React.SetStateAction<Grid>>,
       setIsVisualizing: React.Dispatch<React.SetStateAction<boolean>>,
-      speed: number
+      speed: number,
+      terrainConfig?: { frequency: number; intensity?: number }
     ): void => {
       // Prevent multiple generations
       if (isAnimating.current) return;
@@ -594,6 +684,7 @@ export const useVisualization = (): UseVisualizationReturn => {
       // This ensures a clean slate even if React state and DOM are out of sync
       clearVisualizationClasses(); // Removes .node-visited and .node-path
       clearWallClasses(); // Removes .node-wall
+      clearWeightClasses(); // Removes .node-weight-* classes
 
       // Step A: Clear walls AND pathfinding state from React state
       // First reset pathfinding (isVisited, distance, previousNode)
@@ -621,7 +712,9 @@ export const useVisualization = (): UseVisualizationReturn => {
 
       // Step B: Get maze walls based on algorithm type
       let wallsInOrder: Node[] = [];
+      let terrainNodesInOrder: TerrainNode[] = [];
       let animationSpeed = speed;
+      let isTerrain = false;
 
       switch (mazeType) {
         case MazeType.RECURSIVE_DIVISION:
@@ -657,6 +750,22 @@ export const useVisualization = (): UseVisualizationReturn => {
           // Cellular automata generates many walls - use faster animation
           animationSpeed = Math.max(5, speed / 3);
           break;
+        case MazeType.TERRAIN_MAP:
+          terrainNodesInOrder = generateTerrainMap(
+            clearedGrid,
+            startNode,
+            finishNode,
+            terrainConfig
+              ? {
+                  frequency: terrainConfig.frequency,
+                  intensity: terrainConfig.intensity,
+                }
+              : undefined
+          );
+          isTerrain = true;
+          // Terrain has many nodes - use fast animation
+          animationSpeed = Math.max(3, speed / 4);
+          break;
         default:
           console.error("Unknown maze type:", mazeType);
           return;
@@ -666,42 +775,74 @@ export const useVisualization = (): UseVisualizationReturn => {
       isAnimating.current = true;
       setIsVisualizing(true);
 
-      // Step C: Animate wall building
+      // Step C: Animate wall building OR terrain generation
       // Use setTimeout to allow React to process the grid state update first
       // This ensures isVisited=false is rendered before animation starts
       setTimeout(() => {
-        animateMazeWalls(wallsInOrder, animationSpeed, () => {
-          // Step D: Sync React state with walls
-          // This is CRUCIAL - without this, Dijkstra won't see the walls
-          setGrid((currentGrid) => {
-            const newGrid = currentGrid.map((row) =>
-              row.map((node) => ({ ...node }))
-            );
+        if (isTerrain) {
+          // Terrain Map: Animate weight assignments
+          animateTerrainMap(terrainNodesInOrder, animationSpeed, () => {
+            // Step D: Sync React state with terrain weights
+            setGrid((currentGrid) => {
+              const newGrid = currentGrid.map((row) =>
+                row.map((node) => ({ ...node }))
+              );
 
-            // Mark all walls in the grid state
-            for (const wall of wallsInOrder) {
-              if (
-                !newGrid[wall.row][wall.col].isStart &&
-                !newGrid[wall.row][wall.col].isFinish
-              ) {
-                newGrid[wall.row][wall.col].isWall = true;
+              // Apply all terrain weights
+              for (const terrain of terrainNodesInOrder) {
+                if (
+                  !newGrid[terrain.row][terrain.col].isStart &&
+                  !newGrid[terrain.row][terrain.col].isFinish
+                ) {
+                  newGrid[terrain.row][terrain.col].weight = terrain.weight;
+                  newGrid[terrain.row][terrain.col].isWall = false;
+                }
               }
-            }
 
-            return newGrid;
+              return newGrid;
+            });
+
+            // Animation complete
+            isAnimating.current = false;
+            setIsVisualizing(false);
           });
+        } else {
+          // Wall-based maze: Animate wall building
+          animateMazeWalls(wallsInOrder, animationSpeed, () => {
+            // Step D: Sync React state with walls
+            // This is CRUCIAL - without this, Dijkstra won't see the walls
+            setGrid((currentGrid) => {
+              const newGrid = currentGrid.map((row) =>
+                row.map((node) => ({ ...node }))
+              );
 
-          // Animation complete
-          isAnimating.current = false;
-          setIsVisualizing(false);
-        });
+              // Mark all walls in the grid state
+              for (const wall of wallsInOrder) {
+                if (
+                  !newGrid[wall.row][wall.col].isStart &&
+                  !newGrid[wall.row][wall.col].isFinish
+                ) {
+                  newGrid[wall.row][wall.col].isWall = true;
+                }
+              }
+
+              return newGrid;
+            });
+
+            // Animation complete
+            isAnimating.current = false;
+            setIsVisualizing(false);
+          });
+        }
       }, 50); // Small delay to let React re-render with cleared state
     },
     [
       clearAllTimeouts,
       clearVisualizationClasses,
       clearWallClasses,
+      clearWeightClasses,
       animateMazeWalls,
+      animateTerrainMap,
     ]
   );
 
@@ -821,22 +962,25 @@ export const useVisualization = (): UseVisualizationReturn => {
         algorithm: algo1,
         executionTime: executionTime1,
         visitedCount: visited1.length,
-        pathLength: path1Found ? path1.length : -1,
+        pathLength: calculateWeightedPathLength(path1),
       };
 
       const stats2: AlgorithmStats = {
         algorithm: algo2,
         executionTime: executionTime2,
         visitedCount: visited2.length,
-        pathLength: path2Found ? path2.length : -1,
+        pathLength: calculateWeightedPathLength(path2),
       };
 
       // Determine winner
       let winner: "agent1" | "agent2" | "tie" = "tie";
       if (path1Found && path2Found) {
-        if (path1.length < path2.length) {
+        // Winner is determined by weighted path length (lower is better)
+        const weightedLength1 = calculateWeightedPathLength(path1);
+        const weightedLength2 = calculateWeightedPathLength(path2);
+        if (weightedLength1 < weightedLength2) {
           winner = "agent1";
-        } else if (path2.length < path1.length) {
+        } else if (weightedLength2 < weightedLength1) {
           winner = "agent2";
         } else if (stats1.executionTime < stats2.executionTime) {
           winner = "agent1";

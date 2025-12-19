@@ -194,7 +194,8 @@ export function dijkstra(
     // Relax all unvisited neighbors
     const neighbors = getUnvisitedNeighbors(closestNode, grid, visited);
     for (const neighbor of neighbors) {
-      const newDistance = closestNode.distance + 1;
+      // Use neighbor's weight as the traversal cost (1 = normal, higher = heavier terrain)
+      const newDistance = closestNode.distance + neighbor.weight;
 
       // Standard Dijkstra relaxation: only update if shorter
       if (newDistance < neighbor.distance) {

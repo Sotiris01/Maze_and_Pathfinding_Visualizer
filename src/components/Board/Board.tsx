@@ -6,6 +6,8 @@ import {
   getNewGridWithWallRemoved,
   getNewGridWithStartMoved,
   getNewGridWithFinishMoved,
+  getNewGridWithWeightIncremented,
+  getNewGridWithWeightDecremented,
 } from "../../utils/gridUtils";
 import styles from "./Board.module.css";
 
@@ -13,12 +15,11 @@ import styles from "./Board.module.css";
  * Board Component - Renders the 2D grid of nodes
  *
  * Uses GridContext for state management and handles
- * mouse events for wall drawing functionality.
+ * mouse events for wall/weight painting functionality.
  *
- * Features:
- * - Dynamic node sizing based on container dimensions
- * - Standard Click/Drag: Draw walls
- * - Ctrl/Cmd + Click/Drag: Erase walls (Eraser mode)
+ * All tiles have weight from 1-10 or are walls (∞)
+ * - WALL mode: Click = wall (∞), Ctrl+Click = remove wall (1)
+ * - WEIGHT mode: Click = increment (1→2→...→10→∞), Ctrl+Click = decrement
  */
 const Board: React.FC = () => {
   const {
@@ -29,6 +30,7 @@ const Board: React.FC = () => {
     colCount,
     rowCount,
     isHiddenTargetMode,
+    drawMode,
   } = useGridContext();
 
   // Ref for the board container to measure available space
@@ -37,14 +39,23 @@ const Board: React.FC = () => {
   // Dynamic node size state
   const [nodeSize, setNodeSize] = useState<number>(25);
 
-  // Track eraser mode - persists throughout the drag operation
-  const isEraserModeRef = useRef<boolean>(false);
+  // Track if Ctrl/Cmd was held at start of drag (decrement/erase mode)
+  const isCtrlModeRef = useRef<boolean>(false);
   // Track mouse pressed state with ref to avoid stale closure issues
   const isMousePressedRef = useRef<boolean>(false);
   // Track dragging Start node
   const isDraggingStartRef = useRef<boolean>(false);
   // Track dragging Finish node
   const isDraggingFinishRef = useRef<boolean>(false);
+  // Track draw mode at start of drag operation (WALL or WEIGHT)
+  const drawModeRef = useRef<"WALL" | "WEIGHT">(drawMode);
+  // Track all nodes processed during current drag to prevent double-processing
+  const processedNodesRef = useRef<Set<string>>(new Set());
+
+  // Keep drawModeRef always in sync with drawMode state
+  useEffect(() => {
+    drawModeRef.current = drawMode;
+  }, [drawMode]);
 
   /**
    * Calculate and set the optimal node size based on container dimensions
@@ -105,9 +116,11 @@ const Board: React.FC = () => {
   }, [rowCount, colCount, calculateNodeSize]);
 
   /**
-   * Handle mouse down on a node - starts wall drawing/erasing or Start/Finish dragging
-   * Priority: Start node drag > Finish node drag > Wall drawing/erasing
-   * Ctrl/Cmd + Click activates eraser mode (for walls only)
+   * Handle mouse down on a node - starts wall/weight painting or Start/Finish dragging
+   * Priority: Start node drag > Finish node drag > Wall/Weight interaction
+   *
+   * WALL mode: Click = set wall (∞), Ctrl+Click = remove wall (→1)
+   * WEIGHT mode: Click = increment (1→2→...→10→∞), Ctrl+Click = decrement (∞→10→...→1)
    */
   const handleMouseDown = useCallback(
     (row: number, col: number, event: React.MouseEvent): void => {
@@ -132,33 +145,47 @@ const Board: React.FC = () => {
         if (isHiddenTargetMode) {
           return; // Do nothing - user shouldn't move invisible target
         }
-        // Hidden Target Mode: Prevent dragging the finish node when it's hidden
-        if (isHiddenTargetMode) {
-          return; // Do nothing - user shouldn't move invisible target
-        }
         isDraggingFinishRef.current = true;
         return;
       }
 
-      // Priority 3: Wall drawing/erasing
-      const isEraserMode = event.ctrlKey || event.metaKey;
-      isEraserModeRef.current = isEraserMode;
+      // Priority 3: Wall or Weight interaction based on drawMode
+      // Read from ref to get latest value (avoids stale closure in memoized components)
+      const currentDrawMode = drawModeRef.current;
+      const isCtrlPressed = event.ctrlKey || event.metaKey;
 
-      // Use functional update to always get latest grid state
+      // Store in refs for drag continuity
+      isCtrlModeRef.current = isCtrlPressed;
+
+      // Clear and track this node to prevent double-processing during drag
+      processedNodesRef.current.clear();
+      processedNodesRef.current.add(`${row}-${col}`);
+
+      // Apply the appropriate transformation
       setGrid((currentGrid) => {
-        if (isEraserMode) {
-          return getNewGridWithWallRemoved(currentGrid, row, col);
+        if (currentDrawMode === "WALL") {
+          // WALL mode: Click = wall, Ctrl+Click = remove wall
+          if (isCtrlPressed) {
+            return getNewGridWithWallRemoved(currentGrid, row, col);
+          } else {
+            return getNewGridWithWallSet(currentGrid, row, col);
+          }
         } else {
-          return getNewGridWithWallSet(currentGrid, row, col);
+          // WEIGHT mode: Click = increment, Ctrl+Click = decrement
+          if (isCtrlPressed) {
+            return getNewGridWithWeightDecremented(currentGrid, row, col);
+          } else {
+            return getNewGridWithWeightIncremented(currentGrid, row, col);
+          }
         }
       });
     },
-    [grid, setGrid, setIsMousePressed, isVisualizing]
+    [grid, setGrid, setIsMousePressed, isVisualizing, isHiddenTargetMode]
   );
 
   /**
    * Handle touch start on a node - mobile equivalent of mousedown
-   * Starts wall drawing or Start/Finish dragging
+   * Touch always increments/sets wall (no Ctrl key on mobile)
    */
   const handleTouchStart = useCallback(
     (row: number, col: number, event: React.TouchEvent): void => {
@@ -169,7 +196,7 @@ const Board: React.FC = () => {
       const node = grid[row][col];
       isMousePressedRef.current = true;
       setIsMousePressed(true);
-      isEraserModeRef.current = false; // No eraser mode on touch
+      isCtrlModeRef.current = false; // No Ctrl mode on touch
 
       // Priority 1: Start node - begin dragging
       if (node.isStart) {
@@ -179,31 +206,45 @@ const Board: React.FC = () => {
 
       // Priority 2: Finish node - begin dragging
       if (node.isFinish) {
+        if (isHiddenTargetMode) {
+          return; // Do nothing - user shouldn't move invisible target
+        }
         isDraggingFinishRef.current = true;
         return;
       }
 
-      // Priority 3: Wall drawing (toggle wall state)
+      // Priority 3: Wall or Weight interaction based on drawMode
+      // Read from ref to get latest value (avoids stale closure in memoized components)
+      const currentDrawMode = drawModeRef.current;
+      processedNodesRef.current.clear();
+      processedNodesRef.current.add(`${row}-${col}`);
+
       setGrid((currentGrid) => {
-        const currentNode = currentGrid[row][col];
-        if (currentNode.isWall) {
-          return getNewGridWithWallRemoved(currentGrid, row, col);
-        } else {
+        if (currentDrawMode === "WALL") {
+          // WALL mode on touch: set wall
           return getNewGridWithWallSet(currentGrid, row, col);
+        } else {
+          // WEIGHT mode on touch: increment
+          return getNewGridWithWeightIncremented(currentGrid, row, col);
         }
       });
     },
-    [grid, setGrid, setIsMousePressed, isVisualizing]
+    [grid, setGrid, setIsMousePressed, isVisualizing, isHiddenTargetMode]
   );
 
   /**
-   * Handle mouse enter on a node - continues wall drawing/erasing or Start/Finish dragging
-   * Maintains the mode (draw/erase/drag) that was set on mouse down
+   * Handle mouse enter on a node - continues wall/weight painting or Start/Finish dragging
+   * Uses the mode (draw/decrement) that was set on mouse down
+   *
+   * WALL mode: Only process each node once during drag (prevents toggle flickering)
+   * WEIGHT mode: Process each time mouse enters (allows continuous weight increase)
    */
   const handleMouseEnter = useCallback(
     (row: number, col: number): void => {
       // Use ref to check mouse state to avoid stale closure
       if (!isMousePressedRef.current || isVisualizing) return;
+
+      const nodeKey = `${row}-${col}`;
 
       // Handle Start node dragging
       if (isDraggingStartRef.current) {
@@ -221,12 +262,34 @@ const Board: React.FC = () => {
         return;
       }
 
-      // Handle wall drawing/erasing
+      // In WALL mode, skip if this node was already processed during this drag
+      // (prevents rapid wall toggle on/off when hovering)
+      if (
+        drawModeRef.current === "WALL" &&
+        processedNodesRef.current.has(nodeKey)
+      ) {
+        return;
+      }
+
+      // Mark this node as processed (for WALL mode tracking)
+      processedNodesRef.current.add(nodeKey);
+
+      // Apply transformation based on mode set at drag start
       setGrid((currentGrid) => {
-        if (isEraserModeRef.current) {
-          return getNewGridWithWallRemoved(currentGrid, row, col);
+        if (drawModeRef.current === "WALL") {
+          // WALL mode: Click = wall, Ctrl+Click = remove wall
+          if (isCtrlModeRef.current) {
+            return getNewGridWithWallRemoved(currentGrid, row, col);
+          } else {
+            return getNewGridWithWallSet(currentGrid, row, col);
+          }
         } else {
-          return getNewGridWithWallSet(currentGrid, row, col);
+          // WEIGHT mode: Click = increment, Ctrl+Click = decrement
+          if (isCtrlModeRef.current) {
+            return getNewGridWithWeightDecremented(currentGrid, row, col);
+          } else {
+            return getNewGridWithWeightIncremented(currentGrid, row, col);
+          }
         }
       });
     },
@@ -236,6 +299,9 @@ const Board: React.FC = () => {
   /**
    * Handle touch move - mobile equivalent of mouseenter
    * Uses document.elementFromPoint to find which node is under the finger
+   *
+   * WALL mode: Only process each node once during drag
+   * WEIGHT mode: Process each time finger moves over node
    */
   const handleTouchMove = useCallback(
     (event: React.TouchEvent): void => {
@@ -255,6 +321,8 @@ const Board: React.FC = () => {
 
       if (row < 0 || col < 0 || row >= rowCount || col >= colCount) return;
 
+      const nodeKey = `${row}-${col}`;
+
       // Handle Start node dragging
       if (isDraggingStartRef.current) {
         setGrid((currentGrid) =>
@@ -271,8 +339,25 @@ const Board: React.FC = () => {
         return;
       }
 
-      // Handle wall drawing (always add walls on touch move)
-      setGrid((currentGrid) => getNewGridWithWallSet(currentGrid, row, col));
+      // In WALL mode, skip if this node was already processed during this drag
+      if (
+        drawModeRef.current === "WALL" &&
+        processedNodesRef.current.has(nodeKey)
+      ) {
+        return;
+      }
+
+      // Mark this node as processed (for WALL mode tracking)
+      processedNodesRef.current.add(nodeKey);
+
+      // Touch always uses "increment" mode (no Ctrl on mobile)
+      setGrid((currentGrid) => {
+        if (drawModeRef.current === "WALL") {
+          return getNewGridWithWallSet(currentGrid, row, col);
+        } else {
+          return getNewGridWithWeightIncremented(currentGrid, row, col);
+        }
+      });
     },
     [setGrid, isVisualizing, rowCount, colCount]
   );
@@ -282,21 +367,23 @@ const Board: React.FC = () => {
    */
   const handleTouchEnd = useCallback((): void => {
     isMousePressedRef.current = false;
-    isEraserModeRef.current = false;
+    isCtrlModeRef.current = false;
     isDraggingStartRef.current = false;
     isDraggingFinishRef.current = false;
+    processedNodesRef.current.clear();
     setIsMousePressed(false);
   }, [setIsMousePressed]);
 
   /**
-   * Handle mouse up - stops all interactions (wall drawing/erasing, Start/Finish dragging)
+   * Handle mouse up - stops all interactions
    * Resets all mode refs for the next interaction
    */
   const handleMouseUp = useCallback((): void => {
     isMousePressedRef.current = false;
-    isEraserModeRef.current = false;
+    isCtrlModeRef.current = false;
     isDraggingStartRef.current = false;
     isDraggingFinishRef.current = false;
+    processedNodesRef.current.clear();
     setIsMousePressed(false);
   }, [setIsMousePressed]);
 
@@ -308,9 +395,10 @@ const Board: React.FC = () => {
     const handleGlobalMouseUp = (): void => {
       if (isMousePressedRef.current) {
         isMousePressedRef.current = false;
-        isEraserModeRef.current = false;
+        isCtrlModeRef.current = false;
         isDraggingStartRef.current = false;
         isDraggingFinishRef.current = false;
+        processedNodesRef.current.clear();
         setIsMousePressed(false);
       }
     };
@@ -373,6 +461,7 @@ const Board: React.FC = () => {
               isFinish={node.isFinish}
               isWall={node.isWall}
               isVisited={node.isVisited}
+              weight={node.weight}
               onMouseDown={handleMouseDown}
               onMouseEnter={handleMouseEnter}
               onMouseUp={handleMouseUp}

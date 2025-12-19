@@ -11,6 +11,7 @@ import {
   AlgorithmType,
   MazeType,
   RunRecord,
+  DrawMode,
   GRID_ROWS,
   GRID_COLS,
 } from "../types";
@@ -58,6 +59,10 @@ interface GridContextType {
   // Mouse State (for wall drawing)
   isMousePressed: boolean;
   setIsMousePressed: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // Draw Mode (Wall or Weight painting)
+  drawMode: DrawMode;
+  setDrawMode: React.Dispatch<React.SetStateAction<DrawMode>>;
 
   // Visualization State
   isVisualizing: boolean;
@@ -121,6 +126,8 @@ const defaultContextValue: GridContextType = {
   resizeGrid: () => {},
   isMousePressed: false,
   setIsMousePressed: () => {},
+  drawMode: "WALL",
+  setDrawMode: () => {},
   isVisualizing: false,
   setIsVisualizing: () => {},
   selectedAlgorithm: AlgorithmType.DIJKSTRA,
@@ -190,6 +197,9 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
 
   // Mouse State for wall drawing
   const [isMousePressed, setIsMousePressed] = useState<boolean>(false);
+
+  // Draw Mode State (Wall or Weight painting)
+  const [drawMode, setDrawMode] = useState<DrawMode>("WALL");
 
   // Visualization State
   const [isVisualizing, setIsVisualizing] = useState<boolean>(false);
@@ -343,6 +353,8 @@ export const GridProvider: React.FC<GridProviderProps> = ({ children }) => {
     resizeGrid,
     isMousePressed,
     setIsMousePressed,
+    drawMode,
+    setDrawMode,
     isVisualizing,
     setIsVisualizing,
     selectedAlgorithm,

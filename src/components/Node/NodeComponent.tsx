@@ -14,6 +14,7 @@ export interface NodeComponentProps {
   isWall: boolean;
   isVisited: boolean;
   isPath?: boolean; // For shortest path highlighting
+  weight?: number; // Terrain weight: 1 = normal, 5 = light, 10 = heavy
   onMouseDown: (row: number, col: number, event: React.MouseEvent) => void;
   onMouseEnter: (row: number, col: number) => void;
   onMouseUp: () => void;
@@ -36,6 +37,7 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
     isWall,
     isVisited,
     isPath = false,
+    weight = 1,
     onMouseDown,
     onMouseEnter,
     onMouseUp,
@@ -45,7 +47,7 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
 
     /**
      * Compute the dynamic class name based on node state
-     * Priority order: Start > Finish > Path > Wall > Visited > Default
+     * Priority order: Start > Finish > Path > Wall > Visited > Weight > Default
      *
      * Hidden Target Mode: If finish node is hidden and not yet visited,
      * show it with a blinking animation (visible to user, hidden from algorithm)
@@ -68,9 +70,36 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
         classNames.push(styles["node-wall"]);
       } else if (isVisited) {
         classNames.push(styles["node-visited"]);
+      } else if (weight >= 2 && weight <= 10) {
+        // Weight terrain - use specific class for each weight level
+        classNames.push(styles[`node-weight-${weight}`]);
       }
 
       return classNames.join(" ");
+    };
+
+    /**
+     * Get the weight label to display on the node
+     * Normal tiles (weight=1): "1"
+     * Weighted tiles (weight>1): the weight value
+     * Wall tiles: "∞"
+     */
+    const getWeightLabel = (): string => {
+      if (isStart || isFinish) return "";
+      if (isWall) return "∞";
+      return weight.toString();
+    };
+
+    /**
+     * Build aria-label including weight information
+     */
+    const getAriaLabel = (): string => {
+      let label = `Node at row ${row}, column ${col}`;
+      if (isStart) label += " (Start)";
+      if (isFinish) label += " (Finish)";
+      if (isWall) label += " (Wall)";
+      if (weight > 1 && !isWall) label += ` (Weight: ${weight})`;
+      return label;
     };
 
     return (
@@ -87,10 +116,10 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
         }
         role="button"
         tabIndex={-1}
-        aria-label={`Node at row ${row}, column ${col}${
-          isStart ? " (Start)" : ""
-        }${isFinish ? " (Finish)" : ""}${isWall ? " (Wall)" : ""}`}
-      />
+        aria-label={getAriaLabel()}
+      >
+        <span className={styles.weightLabel}>{getWeightLabel()}</span>
+      </div>
     );
   },
   // Custom comparison function for memo
@@ -101,6 +130,7 @@ const NodeComponent: React.FC<NodeComponentProps> = memo(
       prevProps.isWall === nextProps.isWall &&
       prevProps.isVisited === nextProps.isVisited &&
       prevProps.isPath === nextProps.isPath &&
+      prevProps.weight === nextProps.weight &&
       prevProps.row === nextProps.row &&
       prevProps.col === nextProps.col
     );

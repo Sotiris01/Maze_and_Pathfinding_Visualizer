@@ -2,16 +2,16 @@
 
 ## Project Overview
 
-| Field             | Value                                                                       |
-| ----------------- | --------------------------------------------------------------------------- |
-| **Project Name**  | Maze & Pathfinding Visualizer                                               |
-| **Type**          | Web Application (SPA)                                                       |
-| **Tech Stack**    | React 18, TypeScript 5, Vite 5, CSS Modules, Web Workers                    |
-| **Current Phase** | **Phase F: Extensions & History** ✅ COMPLETE                               |
-| **Progress**      | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D ✅ → Phase E ✅ → Phase F ✅ |
-| **Server**        | ✅ Live at https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/     |
-| **Default Grid**  | 20 rows × 30 columns (600 nodes)                                            |
-| **Repository**    | https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer                |
+| Field             | Value                                                                                    |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| **Project Name**  | Maze & Pathfinding Visualizer                                                            |
+| **Type**          | Web Application (SPA)                                                                    |
+| **Tech Stack**    | React 18, TypeScript 5, Vite 5, CSS Modules, Web Workers                                 |
+| **Current Phase** | **Phase G: Weighted Terrain & Advanced Algorithms** 🔄 IN PROGRESS                       |
+| **Progress**      | Phase A ✅ → Phase B ✅ → Phase C ✅ → Phase D ✅ → Phase E ✅ → Phase F ✅ → Phase G 🔄 |
+| **Server**        | ✅ Live at https://sotiris01.github.io/Maze_and_Pathfinding_Visualizer/                  |
+| **Default Grid**  | 20 rows × 30 columns (600 nodes)                                                         |
+| **Repository**    | https://github.com/Sotiris01/Maze_and_Pathfinding_Visualizer                             |
 
 ---
 
@@ -185,6 +185,136 @@
   - Empty state with animated pulse ring
   - Responsive table with horizontal scroll on mobile
 
+### Phase G: Weighted Terrain & Advanced Algorithms 🔄 IN PROGRESS
+
+- [x] **Weighted Grid Architecture:**
+
+  - [x] Update Node state to support a `weight` property (integer 1-10, where 1 = normal, 10 = impassable wall)
+  - [x] Implement `DrawMode` state ('WALL' | 'WEIGHT') to track what the user is painting
+  - [x] Add `setDrawMode` function to context for switching between wall and weight painting
+  - [x] Create utility functions: `getNewGridWithWeightIncremented`, `getNewGridWithWeightDecremented`, `getNewGridWithWeightSet`
+  - [x] Constraint: A node cannot be both a Wall and Weighted (mutually exclusive)
+
+- [x] **Draw Tool UI (Segmented Control):**
+
+  - [x] Add "Draw Tool" segmented control in Settings accordion
+  - [x] 🧱 Wall mode - Click/drag to draw impassable walls (toggles on/off)
+  - [x] ⚖️ Weight mode - Click to increase weight (1→2→...→9→∞), Right-click to decrease (∞→9→...→1)
+  - [x] Dynamic hint text based on current mode
+  - [x] Professional styling with gradient active state
+  - [x] Weight Mode OFF conversion: weights ≤5 → normal, weights >5 → wall
+
+- [x] **Weighted Visualization (Grayscale Map):**
+
+  - [x] Dynamic CSS styling based on weight values (10-tier grayscale)
+  - [x] **Visual Scale:**
+    - Weight 1 (Normal): **White** `#ffffff`
+    - Weight 2-4 (Light): Light gray shades
+    - Weight 5-7 (Medium): Mid gray shades
+    - Weight 8-9 (Heavy): Dark gray shades
+    - Weight 10 (Wall): **Dark** `#2c3e50` with ∞ symbol
+  - [x] Smooth transitions when weights change
+  - [x] Weight numbers displayed inside nodes (1-9, ∞ for walls)
+  - [x] Hover styles for dark tiles (6-10) maintain visibility
+
+- [x] **Weight Drawing Behavior (Bug Fixes):**
+
+  - [x] Fixed stale closure in memoized NodeComponent using `drawModeRef` synced via `useEffect`
+  - [x] WEIGHT mode allows continuous weight increase during drag (repeated over same tile)
+  - [x] WALL mode uses `processedNodesRef` to prevent toggle flickering during drag
+  - [x] Right-click/Ctrl+click decreases weight (∞→9→...→1)
+
+- [x] **Weighted Algorithm Support:**
+
+  - [x] Updated Dijkstra to use `neighbor.weight` as traversal cost
+  - [x] Updated A\* to use `neighbor.weight` in gScore calculation
+  - [x] Updated Bidirectional A\* to use `neighbor.weight` for both search directions
+  - [x] Cost = node.weight (1 = normal, higher = heavier terrain)
+
+- [x] **Smart Algorithm Filtering (UI Logic):**
+
+  - [x] Added `supportsWeights` property to AlgorithmOption interface
+  - [x] Algorithms supporting weights: Dijkstra, A\*, Bidirectional A\*
+  - [x] Algorithms NOT supporting weights: BFS, DFS, Greedy Best-First, JPS, Bidirectional BFS
+  - [x] When Weight Mode ON: Unweighted algorithms disabled/grayed out with "(Unweighted)" label
+  - [x] Helper text: "⚖️ Unweighted algorithms disabled due to terrain"
+  - [x] Auto-switch to Dijkstra when enabling Weight Mode if current algorithm is unweighted
+  - [x] Race Mode: Both agents follow the same filtering rules
+
+- [x] **Weighted Maze Generation (Terrain Gen):**
+
+  - [x] Implemented pure TypeScript **Perlin Noise** utility (`src/utils/perlinNoise.ts`)
+    - 2D Perlin Noise with standard permutation table
+    - Fractal Brownian Motion (fBm) for multi-octave terrain
+    - Seeded random for reproducible results
+    - Zero external dependencies
+  - [x] Created terrain map generator (`src/algorithms/maze/terrainMap.ts`)
+    - Uses fBm noise for organic terrain features
+    - Non-linear weight mapping (plains common, mountains rare)
+    - Radial animation from center for visual effect
+    - Configurable frequency, octaves, persistence, intensity
+  - [x] Added `MazeType.TERRAIN_MAP` to enum
+  - [x] Added "Terrain (Perlin Noise)" option to Maze Dropdown
+  - [x] Integrated terrain animation in `useVisualization.ts`
+    - Batch processing for smooth animation
+    - DOM class updates for weight visualization
+    - React state sync on completion
+
+- [x] **Terrain Generation UI Controls:**
+
+  - [x] Terrain Smoothness dropdown (smooth/medium/rough/jagged)
+  - [x] Peak Intensity slider (0.3-1.2 range)
+    - Lower values = more peaks (weight 10 tiles)
+    - Higher values = more valleys (weight 1 tiles)
+    - Displays percentage label "Peak Intensity: X%"
+    - Power curve bias controls weight distribution
+
+- [x] **Weighted Path Length Calculation:**
+
+  - [x] Path length now sums tile weights (not just tile count)
+  - [x] Added `calculateWeightedPathLength()` utility in `pathUtils.ts`
+  - [x] Race mode winner determined by lowest weighted path cost
+  - [x] Statistics display weighted path length
+
+- [x] **New Visualization Color Scheme:**
+
+  - [x] Agent 1 (A1): Blue theme
+    - Visited: Blue glow (`#2196F3`)
+    - Path: Super-blue fill (`#1565C0`) with dark border
+  - [x] Agent 2 (A2): Yellow theme
+    - Visited: Yellow glow (`#FFEB3B`)
+    - Path: Super-yellow fill (`#fdd835`) with amber border
+  - [x] Overlap: Green theme
+    - Visited: Green glow (`#4CAF50`)
+    - Path: Super-green fill (`#43a047`) with dark green border
+  - [x] Brightness/glow approach preserves terrain visibility
+  - [x] Weight labels change color based on path overlay
+
+- [x] **Clear Board Button:**
+
+  - [x] Combined "Clear Walls" and "Clear Weights" into single "Clear Board" button
+  - [x] Removes all walls and resets all weights to 1
+
+- [ ] **New Advanced Algorithms:**
+  - **Pathfinding:**
+    - [ ] **Bellman-Ford Algorithm** - Handles weighted graphs (and negative edges)
+      - Relaxes all edges V-1 times
+      - Can detect negative cycles
+      - Works with weighted terrain
+    - [ ] **IDA\* (Iterative Deepening A\*)** - Memory-efficient A\* variant
+      - Combines DFS memory efficiency with A\* optimality
+      - Uses f-cost threshold that increases each iteration
+      - Better for large search spaces
+  - **Maze/Terrain Generation:**
+    - [ ] **Binary Tree Maze** - Simple, fast maze generation
+      - Each cell chooses to carve north or east
+      - Creates characteristic diagonal bias
+      - Very fast O(n) generation
+    - [ ] **Random Terrain Generator** - Procedural weighted terrain
+      - Combines multiple noise octaves
+      - Creates realistic elevation maps
+      - Configurable roughness/smoothness
+
 ---
 
 ## Current Features
@@ -202,14 +332,14 @@
 
 **Pathfinding Algorithms:**
 
-- Dijkstra's Algorithm
-- A\* Search (Manhattan distance heuristic)
+- Dijkstra's Algorithm (supports weighted terrain)
+- A\* Search (Manhattan distance heuristic, supports weighted terrain)
 - Greedy Best-First Search (heuristic-only, no shortest path guarantee)
-- Breadth-First Search (BFS)
-- Depth-First Search (DFS)
-- Bidirectional BFS (Swarm) - searches from both ends
-- Bidirectional A\* - combines heuristics with bidirectional search
-- Jump Point Search (JPS) - optimized A\* that skips intermediate nodes
+- Breadth-First Search (BFS) - unweighted only
+- Depth-First Search (DFS) - unweighted only
+- Bidirectional BFS (Swarm) - unweighted only, searches from both ends
+- Bidirectional A\* - supports weighted terrain, combines heuristics with bidirectional search
+- Jump Point Search (JPS) - unweighted only, optimized A\* that skips intermediate nodes
 
 **Maze Generation:**
 
@@ -218,13 +348,15 @@
 - Prim's Algorithm (randomized MST)
 - Spiral Pattern (concentric rings)
 - Cellular Automata (cave-like organic patterns)
+- Terrain Map (Perlin Noise weighted terrain)
 
 **Race Mode:**
 
 - Dual algorithm comparison
-- Agent 1: Blue→Purple (visited), Yellow (path)
-- Agent 2: Orange→Red (visited), Cyan (path)
-- Overlap: Lime Green (shared path nodes)
+- Agent 1: Blue glow (visited), Super-blue fill (path)
+- Agent 2: Yellow glow (visited), Super-yellow fill (path)
+- Overlap: Green glow (visited), Super-green fill (path)
+- Weighted path length comparison (sum of tile weights)
 - **Improved statistics when one algorithm fails**
 
 **UI Controls:**
@@ -258,7 +390,7 @@
 
 ```
 src/
-├── App.tsx                              (275 lines) - Main app with 3 scroll-snap sections
+├── App.tsx                              (253 lines) - Main app with 3 scroll-snap sections
 ├── App.module.css                       (301 lines) - Responsive layout + stats loading fallback
 ├── main.tsx                             (14 lines) - React entry point
 ├── vite-env.d.ts                        (27 lines) - Vite type declarations
@@ -267,35 +399,36 @@ vite.config.ts                           (60 lines) - Build config with manual c
 │   ├── maze/
 │   │   ├── cellularAutomata.ts          (403 lines) - Cellular automata maze (Game of Life)
 │   │   ├── prims.ts                     (285 lines) - Prim's maze (randomized MST)
-│   │   ├── randomizedDFS.ts             (186 lines) - Randomized DFS maze
+│   │   ├── randomizedDFS.ts             (228 lines) - Randomized DFS maze
 │   │   ├── recursiveDivision.ts         (209 lines) - Recursive Division maze
-│   │   └── spiralMaze.ts                (265 lines) - Spiral pattern maze
+│   │   ├── spiralMaze.ts                (330 lines) - Spiral pattern maze
+│   │   └── terrainMap.ts                (194 lines) - Perlin Noise terrain generator with intensity
 │   └── pathfinding/
-│       ├── astar.ts                     (190 lines) - A* algorithm
-│       ├── bfs.ts                       (142 lines) - Breadth-First Search
-│       ├── bidirectionalAStar.ts        (342 lines) - Bidirectional A* search
-│       ├── bidirectionalBFS.ts          (186 lines) - Bidirectional BFS (Swarm)
+│       ├── astar.ts                     (295 lines) - A* algorithm (weighted)
+│       ├── bfs.ts                       (171 lines) - Breadth-First Search
+│       ├── bidirectionalAStar.ts        (393 lines) - Bidirectional A* search (weighted)
+│       ├── bidirectionalBFS.ts          (210 lines) - Bidirectional BFS (Swarm)
 │       ├── dfs.ts                       (149 lines) - Depth-First Search
-│       ├── dijkstra.ts                  (145 lines) - Dijkstra's algorithm
-│       ├── greedyBestFirst.ts           (184 lines) - Greedy Best-First Search
-│       └── jumpPointSearch.ts           (342 lines) - Jump Point Search (JPS)
+│       ├── dijkstra.ts                  (236 lines) - Dijkstra's algorithm (weighted)
+│       ├── greedyBestFirst.ts           (278 lines) - Greedy Best-First Search
+│       └── jumpPointSearch.ts           (415 lines) - Jump Point Search (JPS)
 ├── components/
 │   ├── Board/
-│   │   ├── Board.tsx                    (336 lines) - Grid renderer with touch support
+│   │   ├── Board.tsx                    (415 lines) - Grid renderer with weight mode + touch support
 │   │   ├── Board.module.css             (44 lines) - Grid styles
 │   │   └── index.ts                     (2 lines) - Barrel export
 │   ├── Controls/
-│   │   ├── Accordion.tsx                (87 lines) - Reusable collapsible section
+│   │   ├── Accordion.tsx                (102 lines) - Reusable collapsible section
 │   │   ├── Accordion.module.css         (105 lines) - Accordion animations/styles
-│   │   ├── ControlPanel.tsx             (458 lines) - Sidebar with accordion groups
-│   │   ├── ControlPanel.module.css      (413 lines) - Professional dark theme styles
+│   │   ├── ControlPanel.tsx             (980 lines) - Sidebar with terrain intensity slider
+│   │   ├── ControlPanel.module.css      (589 lines) - Professional dark theme + slider styling
 │   │   └── index.ts                     (1 line) - Barrel export
 │   ├── History/
-│   │   ├── HistorySection.tsx           (199 lines) - Run history page component
-│   │   └── HistorySection.module.css    (281 lines) - Glassmorphism table styling
+│   │   ├── HistorySection.tsx           (210 lines) - Run history page component
+│   │   └── HistorySection.module.css    (306 lines) - Glassmorphism table styling
 │   ├── Legend/
-│   │   ├── Legend.tsx                   (67 lines) - Color legend component
-│   │   ├── Legend.module.css            (97 lines) - Legend styles
+│   │   ├── Legend.tsx                   (80 lines) - Color legend with glow styles
+│   │   ├── Legend.module.css            (114 lines) - Legend styles + glow animations
 │   │   └── index.ts                     (1 line) - Barrel export
 │   ├── Modals/
 │   │   └── StatsModal/
@@ -309,30 +442,31 @@ vite.config.ts                           (60 lines) - Build config with manual c
 │   │   ├── StatisticsSection.module.css (488 lines) - Responsive 3→1 column layout
 │   │   └── index.ts                     (1 line) - Barrel export
 │   ├── Node/
-│   │   ├── NodeComponent.tsx            (104 lines) - Grid cell with touch support
-│   │   ├── Node.module.css              (265 lines) - Node styles + animations
+│   │   ├── NodeComponent.tsx            (132 lines) - Grid cell with weight display + touch
+│   │   ├── Node.module.css              (564 lines) - Node styles + blue/yellow/green color scheme
 │   │   └── index.ts                     (2 lines) - Barrel export
 │   └── UI/
 │       ├── Toast.tsx                    (80 lines) - Toast notification component
 │       └── Toast.module.css             (71 lines) - Slide-up animation styles
 ├── context/
-│   └── GridContext.tsx                  (372 lines) - Global state + history management
+│   └── GridContext.tsx                  (339 lines) - Global state + DrawMode + history
 ├── hooks/
 │   ├── useBenchmarking.ts               (196 lines) - Web Worker benchmark hook
-│   ├── useHistory.ts                    (86 lines) - History localStorage hook (deprecated)
-│   └── useVisualization.ts              (1135 lines) - Animation system + history recording
+│   ├── useHistory.ts                    (83 lines) - History localStorage hook (deprecated)
+│   └── useVisualization.ts              (1161 lines) - Animation system + weighted path length
 ├── styles/
-│   └── variables.css                    (383 lines) - CSS variables + global animations
+│   └── variables.css                    (437 lines) - CSS variables + blue/yellow/green animations
 ├── types/
-│   └── index.ts                         (95 lines) - TypeScript interfaces + RunRecord
+│   └── index.ts                         (111 lines) - TypeScript interfaces + DrawMode + RunRecord
 ├── utils/
-│   ├── gridUtils.ts                     (305 lines) - Grid helper functions
-│   └── pathUtils.ts                     (10 lines) - Path utilities (placeholder)
+│   ├── gridUtils.ts                     (427 lines) - Grid helpers + weight functions
+│   ├── pathUtils.ts                     (21 lines) - Weighted path length calculation
+│   └── perlinNoise.ts                   (183 lines) - Perlin Noise implementation for terrain
 └── workers/
-    └── benchmark.worker.ts              (200 lines) - Isolated timing Web Worker
+    └── benchmark.worker.ts              (201 lines) - Isolated timing Web Worker
 ```
 
-**Total: 53 files, ~10,572 lines of code**
+**Total: 54 files, ~12,867 lines of code**
 
 ---
 
@@ -340,17 +474,17 @@ vite.config.ts                           (60 lines) - Build config with manual c
 
 | Category   | Files  | Lines of Code |
 | ---------- | ------ | ------------- |
-| App Core   | 4      | 617           |
+| App Core   | 4      | 595           |
 | Config     | 1      | 60            |
-| Components | 24     | 3,603         |
-| Algorithms | 13     | 2,493         |
-| Context    | 1      | 372           |
-| Hooks      | 3      | 1,417         |
-| Styles     | 1      | 383           |
-| Types      | 1      | 95            |
-| Utils      | 2      | 315           |
-| Workers    | 1      | 200           |
-| **Total**  | **53** | **~10,572**   |
+| Components | 24     | 4,721         |
+| Algorithms | 14     | 3,171         |
+| Context    | 1      | 339           |
+| Hooks      | 3      | 1,440         |
+| Styles     | 1      | 437           |
+| Types      | 1      | 111           |
+| Utils      | 3      | 631           |
+| Workers    | 1      | 201           |
+| **Total**  | **54** | **~12,867**   |
 
 ---
 
@@ -376,18 +510,28 @@ vite.config.ts                           (60 lines) - Build config with manual c
 
 ## Color Palette
 
-| Element           | Color               | Hex             |
-| ----------------- | ------------------- | --------------- |
-| Unvisited         | White               | #ffffff         |
-| Wall              | Dark Grey           | #34495e         |
-| Start             | Green               | #4caf50         |
-| Finish            | Red                 | #f44336         |
-| Visited (Agent 1) | Blue→Purple         | #00bcd4→#9c27b0 |
-| Visited (Agent 2) | Orange→Red          | #ff9800→#f44336 |
-| Path (Agent 1)    | Yellow              | #ffeb3b         |
-| Path (Agent 2)    | Cyan                | #00e5ff         |
-| Path Overlap      | Lime Green          | #76ff03         |
-| Visited Overlap   | Purple/Red gradient | #9c27b0/#f44336 |
+| Element           | Color           | Hex     |
+| ----------------- | --------------- | ------- |
+| Unvisited         | White           | #ffffff |
+| Wall              | Dark Grey       | #2c3e50 |
+| Weight 1          | Light Cream     | #f5f0e6 |
+| Weight 2          | Very Light Gray | #f0f0f0 |
+| Weight 3          | Light Gray      | #e0e0e0 |
+| Weight 4          | Light-Mid Gray  | #d0d0d0 |
+| Weight 5          | Mid Gray        | #b8c6db |
+| Weight 6          | Mid-Dark Gray   | #909090 |
+| Weight 7          | Dark Gray       | #707070 |
+| Weight 8          | Darker Gray     | #505050 |
+| Weight 9          | Very Dark Gray  | #383838 |
+| Weight 10 (∞)     | Wall Dark       | #64748b |
+| Start             | Green           | #4caf50 |
+| Finish            | Red             | #f44336 |
+| Visited (Agent 1) | Blue Glow       | #2196F3 |
+| Visited (Agent 2) | Yellow Glow     | #FFEB3B |
+| Path (Agent 1)    | Super-Blue      | #1565C0 |
+| Path (Agent 2)    | Super-Yellow    | #fdd835 |
+| Path Overlap      | Super-Green     | #43a047 |
+| Visited Overlap   | Green Glow      | #4CAF50 |
 
 ---
 
@@ -431,8 +575,13 @@ dist/
 - Animation: setTimeout-based with DOM classList manipulation
 - Race mode uses parallel animation for both agents
 - **Web Worker benchmarking** provides rock-solid stable timing metrics
-- **Phase F** focuses on advanced simulation scenarios (hidden target/fog of war), algorithm expansion, and data persistence (run history with replay capability)
+- **Phase G** adds weighted terrain with 10-tier grayscale visualization
+- **Weight Mode** uses ref-based state sync to avoid stale closures in memoized components
+- MIN_WEIGHT = 1 (normal), MAX_WEIGHT = 10 (displayed as ∞, treated as wall)
+- **Path Length** = sum of tile weights (not just tile count)
+- **New Color Scheme:** A1=Blue, A2=Yellow, Overlap=Green (brightness/glow approach)
+- **Terrain Intensity** slider controls peak frequency (0.3-1.2 power curve)
 
 ---
 
-**Last Updated:** December 12, 2025
+**Last Updated:** December 19, 2025

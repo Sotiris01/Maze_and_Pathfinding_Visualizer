@@ -1,7 +1,7 @@
 /**
  * Accordion Component
  * Reusable collapsible section for grouped controls
- * 
+ *
  * Features:
  * - Smooth expand/collapse animation
  * - Chevron icon rotation
@@ -9,23 +9,34 @@
  * - Accessible keyboard navigation
  */
 
-import React, { useState, useRef, useEffect } from 'react';
-import styles from './Accordion.module.css';
+import React, { useState, useRef, useEffect } from "react";
+import styles from "./Accordion.module.css";
 
 interface AccordionProps {
   title: string;
   icon?: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  /** Controlled mode: external open state */
+  isOpen?: boolean;
+  /** Controlled mode: callback when toggled */
+  onToggle?: () => void;
 }
 
-const Accordion: React.FC<AccordionProps> = ({ 
-  title, 
-  icon, 
-  children, 
-  defaultOpen = false 
+const Accordion: React.FC<AccordionProps> = ({
+  title,
+  icon,
+  children,
+  defaultOpen = false,
+  isOpen: controlledIsOpen,
+  onToggle,
 }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
+
+  // Use controlled mode if isOpen prop is provided
+  const isControlled = controlledIsOpen !== undefined;
+  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState<number | undefined>(
     defaultOpen ? undefined : 0
@@ -40,18 +51,22 @@ const Accordion: React.FC<AccordionProps> = ({
   }, [isOpen, children]);
 
   const handleToggle = () => {
-    setIsOpen(!isOpen);
+    if (isControlled && onToggle) {
+      onToggle();
+    } else {
+      setInternalIsOpen(!internalIsOpen);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       handleToggle();
     }
   };
 
   return (
-    <div className={`${styles.accordion} ${isOpen ? styles.open : ''}`}>
+    <div className={`${styles.accordion} ${isOpen ? styles.open : ""}`}>
       <button
         className={styles.header}
         onClick={handleToggle}
@@ -64,7 +79,7 @@ const Accordion: React.FC<AccordionProps> = ({
           <span className={styles.title}>{title}</span>
         </span>
         <svg
-          className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}
+          className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}
           width="16"
           height="16"
           viewBox="0 0 16 16"
@@ -82,7 +97,9 @@ const Accordion: React.FC<AccordionProps> = ({
       </button>
       <div
         className={styles.contentWrapper}
-        style={{ height: contentHeight !== undefined ? `${contentHeight}px` : 'auto' }}
+        style={{
+          height: contentHeight !== undefined ? `${contentHeight}px` : "auto",
+        }}
       >
         <div ref={contentRef} className={styles.content}>
           {children}
