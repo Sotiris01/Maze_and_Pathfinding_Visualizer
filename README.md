@@ -48,14 +48,14 @@ An interactive web application that visualizes pathfinding and maze generation a
 
 ### 🧩 Maze Generation
 
-| Algorithm              | Style      | Description                                       |
-| ---------------------- | ---------- | ------------------------------------------------- |
-| **Recursive Division** | Structured | Creates chambers with connecting passages         |
-| **Randomized DFS**     | Organic    | Recursive Backtracker - winding, cave-like        |
-| **Prim's Algorithm**   | Organic    | Randomized MST - creates smooth cave patterns     |
-| **Spiral Maze**        | Geometric  | Concentric rings from outside to inside           |
-| **Cellular Automata**  | Organic    | Game of Life-inspired chaotic cave generation     |
-| **Terrain Map**        | Weighted   | Perlin Noise terrain with configurable intensity  |
+| Algorithm              | Style      | Description                                      |
+| ---------------------- | ---------- | ------------------------------------------------ |
+| **Recursive Division** | Structured | Creates chambers with connecting passages        |
+| **Randomized DFS**     | Organic    | Recursive Backtracker - winding, cave-like       |
+| **Prim's Algorithm**   | Organic    | Randomized MST - creates smooth cave patterns    |
+| **Spiral Maze**        | Geometric  | Concentric rings from outside to inside          |
+| **Cellular Automata**  | Organic    | Game of Life-inspired chaotic cave generation    |
+| **Terrain Map**        | Weighted   | Perlin Noise terrain with configurable intensity |
 
 ### 🏁 Race Mode
 
@@ -361,19 +361,19 @@ Space Complexity: O(V)
 
 ## 🎨 Color Legend
 
-| Element                 | Color        | Description                    |
-| ----------------------- | ------------ | ------------------------------ |
-| ⬜ Unvisited            | White        | Unexplored nodes               |
-| 🟢 Start                | Green        | Starting position              |
-| 🔴 Finish               | Red          | Destination                    |
-| ⬛ Wall                 | Dark Grey    | Obstacles                      |
-| 🔵 Visited (Agent 1)    | Blue Glow    | Explored by first algorithm    |
-| 🟡 Visited (Agent 2)    | Yellow Glow  | Explored by second algorithm   |
-| 🟢 Visited Overlap      | Green Glow   | Explored by both algorithms    |
-| 🔷 Path (Agent 1)       | Super-Blue   | Final path of first algorithm  |
-| 🟨 Path (Agent 2)       | Super-Yellow | Final path of second algorithm |
-| 💚 Path Overlap         | Super-Green  | Shared path nodes in Race Mode |
-| ⬜→⬛ Weight 1-10       | Grayscale    | Terrain difficulty (light=easy)|
+| Element              | Color        | Description                     |
+| -------------------- | ------------ | ------------------------------- |
+| ⬜ Unvisited         | White        | Unexplored nodes                |
+| 🟢 Start             | Green        | Starting position               |
+| 🔴 Finish            | Red          | Destination                     |
+| ⬛ Wall              | Dark Grey    | Obstacles                       |
+| 🔵 Visited (Agent 1) | Blue Glow    | Explored by first algorithm     |
+| 🟡 Visited (Agent 2) | Yellow Glow  | Explored by second algorithm    |
+| 🟢 Visited Overlap   | Green Glow   | Explored by both algorithms     |
+| 🔷 Path (Agent 1)    | Super-Blue   | Final path of first algorithm   |
+| 🟨 Path (Agent 2)    | Super-Yellow | Final path of second algorithm  |
+| 💚 Path Overlap      | Super-Green  | Shared path nodes in Race Mode  |
+| ⬜→⬛ Weight 1-10    | Grayscale    | Terrain difficulty (light=easy) |
 
 ---
 
